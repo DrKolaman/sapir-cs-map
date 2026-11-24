@@ -14,6 +14,7 @@
   --accent: #1d4f7a; --accent-soft: #e2ecf6; --warn: #b4461b; --warn-soft: #fbe9df; --ok: #2c7a4b;
   --c-math: #3d6fb6; --c-theory: #6a4fb0; --c-sys: #2f8a8a; --c-prog: #c27a1f; --c-data: #7d8a2c;
   --c-ai: #c0396b; --c-se: #8a4a2a; --c-eth: #4d7d3a; --c-proj: #5a6677; --c-el: #8792a2;
+  --g1: #2f6fb0; --g2: #c46a1b; --g3: #2f8a5b; --g4: #8a4fb0; --g5: #b03f6f; --g6: #5b6b2f;
   --f-display: "Frank Ruhl Libre", "David", Georgia, serif;
   --f-body: "Assistant", "Segoe UI", Arial, sans-serif;
   color-scheme: light;
@@ -103,11 +104,12 @@ aside.drawer.wide { width: min(1180px, 100%) }
 .close { justify-self: end; font: inherit; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 4px 12px; cursor: pointer }
 .kv { display: grid; grid-template-columns: 110px 1fr; gap: 4px 12px; font-size: .92rem }
 .kv dt { color: var(--muted) } .kv dd { margin: 0 }
-.comp { display: flex; height: 22px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line) }
+.comp { display: flex; height: 26px; border-radius: 6px; overflow: hidden; gap: 2px; background: var(--panel) }
+.comp .seg { min-width: 0; display: flex; align-items: center; justify-content: center; background: var(--sc); color: #fff; font-size: .74rem; font-weight: 600; padding: 0 4px }
+.comp .seg span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
 .comps { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; font-size: .88rem }
 .comps li { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap }
 .comps i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none }
-.comp div { display: flex; align-items: center; justify-content: center; font-size: .72rem; color: var(--panel); white-space: nowrap; overflow: hidden }
 .m-supervised { background: var(--accent) } .m-oral { background: var(--ok) } .m-unsupervised { background: var(--warn) } .m-unclear, .m-attendance, .m-inclass { background: var(--muted) }
 ul.clean { margin: 0; padding-inline-start: 18px } ul.clean li { margin: 2px 0 }
 /* week grid */
@@ -244,7 +246,7 @@ function openCourse(id) {
   let h = `<button class="close" data-close>סגירה</button><h2>${esc(c.name)}</h2>`;
   if (det) {
     h += `<dl class="kv"><dt>סילבוס</dt><dd>${esc(det.syllabus || '—')}${det.lecturer ? ' · ' + esc(det.lecturer) : ''}</dd>
-      <dt>הרכב הציון</dt><dd>${det.components.length ? (det.components.some(x => x.weight) ? `<div class="comp">${det.components.filter(x => x.weight).map(x => `<div class="m-${x.mode}" style="width:${x.weight}%" title="${esc(x.name)} ${x.weight}%"></div>`).join('')}</div>` : '') + `<ul class="comps">${det.components.map(x => `<li><i class="m-${x.mode}"></i><span dir="auto">${esc(x.name)}</span> <b>${x.weight != null ? x.weight + '%' : 'משקל לא מפורט'}</b> <span class="muted">· ${MODE[x.mode] || x.mode}</span></li>`).join('')}</ul>` : esc(det.assessment || 'לא מפורט')}</dd>
+      <dt>הרכב הציון</dt><dd>${det.components.length ? (det.components.some(x => x.weight) ? `<div class="comp">${det.components.filter(x => x.weight).map((x, k) => `<div class="seg" style="flex:${x.weight} 1 0;--sc:var(--g${k % 6 + 1})" title="${esc(x.name)} ${x.weight}% · ${MODE[x.mode] || ''}"><span dir="auto">${x.weight >= 25 ? esc(x.name.split('(')[0].trim()) + ' ' : ''}${x.weight >= 8 ? x.weight + '%' : ''}</span></div>`).join('')}</div>` : '') + `<ul class="comps">${det.components.map((x, k) => `<li><i style="background:${x.weight ? `var(--g${det.components.filter(y => y.weight).indexOf(x) % 6 + 1})` : 'var(--line)'}"></i><span dir="auto">${esc(x.name)}</span> <b>${x.weight != null ? x.weight + '%' : 'משקל לא מפורט'}</b> <span class="muted">· ${MODE[x.mode] || x.mode}</span></li>`).join('')}</ul>` : esc(det.assessment || 'לא מפורט')}</dd>
       <dt>תנאי מעבר</dt><dd>${det.passExam ? 'ציון עובר במבחן הוא תנאי למעבר' : 'לא כתוב תנאי מעבר במבחן'}${det.defense ? ' · יש הגנה בעל פה' : ''}</dd>
       <dt>AI</dt><dd>${esc(AIP[det.ai] || det.ai)}${det.aiContent ? ' · AI הוא חלק מתוכן הקורס' : ''}</dd>
       ${tt.length ? `<dt>מועדים</dt><dd>${tt.map(t => `סמסטר ${t.sem === 'ק' ? 'קיץ' : t.sem}, יום ${t.day} <span dir="ltr">${hm(t.from)}–${hm(t.to)}</span>${t.who ? ' · ' + esc(t.who) : ''}${t.pm ? ' (ניהול מוצר)' : ''}`).join('<br>')}</dd>` : ''}
