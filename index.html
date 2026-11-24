@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>מדעי המחשב בספיר</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700&family=Assistant:wght@400;600;700&display=swap">
+<style>
+/* Layout: one sticky header with four views; the degree map is the hub, details open in a side panel. */
+:root {
+  --bg: #f4f6f9; --panel: #ffffff; --ink: #17212e; --muted: #5a6677; --line: #d9dfe7;
+  --accent: #1d4f7a; --accent-soft: #e2ecf6; --warn: #b4461b; --warn-soft: #fbe9df; --ok: #2c7a4b;
+  --c-math: #3d6fb6; --c-theory: #6a4fb0; --c-sys: #2f8a8a; --c-prog: #c27a1f; --c-data: #7d8a2c;
+  --c-ai: #c0396b; --c-se: #8a4a2a; --c-eth: #4d7d3a; --c-proj: #5a6677; --c-el: #8792a2;
+  --f-display: "Frank Ruhl Libre", "David", Georgia, serif;
+  --f-body: "Assistant", "Segoe UI", Arial, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111821; --panel: #18222e; --ink: #e6ebf1; --muted: #9aa7b8; --line: #2c3949;
+  --accent: #7fb1e0; --accent-soft: #1d3247; --warn: #f0905f; --warn-soft: #3a2419; --ok: #6cc394;
+  --c-math: #7ea6e3; --c-theory: #a891e6; --c-sys: #63c1c1; --c-prog: #e8a95a; --c-data: #b7c35c;
+  --c-ai: #ee7aa3; --c-se: #d08a66; --c-eth: #8fc47a; --c-proj: #9aa7b8; --c-el: #8d99aa; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #111821; --panel: #18222e; --ink: #e6ebf1; --muted: #9aa7b8; --line: #2c3949;
+  --accent: #7fb1e0; --accent-soft: #1d3247; --warn: #f0905f; --warn-soft: #3a2419; --ok: #6cc394;
+  --c-math: #7ea6e3; --c-theory: #a891e6; --c-sys: #63c1c1; --c-prog: #e8a95a; --c-data: #b7c35c;
+  --c-ai: #ee7aa3; --c-se: #d08a66; --c-eth: #8fc47a; --c-proj: #9aa7b8; --c-el: #8d99aa; color-scheme: dark }
+* { box-sizing: border-box }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.55; direction: rtl;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 48px }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg) }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0 }
+h1 { font-size: 1.55rem } h2 { font-size: 1.6rem; margin-bottom: .4rem } h3 { font-size: 1.15rem }
+.wrap { max-width: 1240px; margin: 0 auto }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); border-bottom: 1px solid var(--line); padding-block: 12px 0; margin-bottom: 20px }
+.toprow { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; justify-content: space-between }
+.sub { color: var(--muted); font-size: .9rem }
+nav.tabs { display: flex; gap: 4px; overflow-x: auto; margin-top: 10px }
+nav.tabs a { padding: 8px 14px; border-radius: 8px 8px 0 0; color: var(--muted); text-decoration: none; font-weight: 600; white-space: nowrap; border: 1px solid transparent; border-bottom: 0 }
+nav.tabs a[aria-current="page"] { background: var(--panel); color: var(--ink); border-color: var(--line) }
+nav.tabs a.hiddenTab { display: none } nav.tabs a.hiddenTab.shown { display: inline-block; color: var(--accent) }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+section.view { display: grid; gap: 18px }
+.lead { max-width: 70ch; color: var(--ink); font-size: 1.05rem; margin: 0 }
+.muted { color: var(--muted) } .small { font-size: .85rem }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center }
+.chip { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 6px 14px; font: inherit; font-weight: 600; cursor: pointer }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--panel) }
+.trackNote { background: var(--accent-soft); border-radius: 10px; padding: 10px 14px; max-width: 90ch }
+.map { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px }
+@media (max-width: 1050px) { .map { grid-template-columns: repeat(3, minmax(0, 1fr)) } }
+@media (max-width: 640px) { .map { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+@media (max-width: 420px) { .map { grid-template-columns: minmax(0, 1fr) } }
+.sem { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 6px; min-width: 0 }
+.semhead { display: flex; justify-content: space-between; align-items: baseline; gap: 6px }
+.semhead b { font-family: var(--f-display); font-size: 1.02rem } .semhead span { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums }
+.tile { all: unset; cursor: pointer; display: block; border-radius: 8px; padding: 6px 8px; background: color-mix(in srgb, var(--cc) 12%, var(--panel)); border-inline-start: 4px solid var(--cc); font-size: .88rem; line-height: 1.3 }
+.tile:hover { background: color-mix(in srgb, var(--cc) 22%, var(--panel)) }
+.tile:focus-visible { outline: 2px solid var(--accent) }
+.tile .nz { color: var(--muted); font-size: .76rem; font-variant-numeric: tabular-nums }
+.tile .tag { display: inline-block; font-size: .7rem; padding: 0 6px; border-radius: 999px; margin-inline-start: 4px; background: var(--bg); color: var(--muted) }
+.tile .tag.w { background: var(--warn-soft); color: var(--warn) } .tile .tag.n { background: var(--accent-soft); color: var(--accent) }
+.tile.slot { background: transparent; border: 1.5px dashed var(--c-el); border-inline-start-width: 1.5px; color: var(--muted) }
+.tile.clash { box-shadow: inset 0 0 0 2px var(--warn) }
+.tile.cut { opacity: .5; text-decoration: line-through }
+.emptyTrack { font-size: .8rem; color: var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 6px 8px }
+.weekBtn { margin-top: auto; font: inherit; font-size: .8rem; border: 1px solid var(--line); background: transparent; color: var(--accent); border-radius: 8px; padding: 4px 8px; cursor: pointer }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .85rem }
+.legend span { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums }
+.legend i { width: 12px; height: 12px; border-radius: 3px; background: var(--cc); display: inline-block }
+.legend .zero { color: var(--warn); font-weight: 700 }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0 }
+.card .num { font-family: var(--f-display); font-size: 2rem; color: var(--accent); line-height: 1.1; font-variant-numeric: tabular-nums }
+.card .num.w { color: var(--warn) }
+.card h3 { margin: 4px 0 6px }
+.card p { margin: 0; color: var(--muted) }
+.card p.src, p.src { margin-top: 8px; font-size: .8rem } .src a, table.t a { color: var(--accent) }
+.group h3 { margin-bottom: 8px }
+.q { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 6px }
+.q h3 { font-size: 1.25rem } .q p { margin: 0; max-width: 75ch }
+.q .why { color: var(--muted) }
+.say { border-inline-start: 3px solid var(--accent); padding-inline-start: 12px; max-width: 80ch }
+.say b { display: block }
+table.t { border-collapse: collapse; width: 100%; font-size: .9rem }
+.tw { overflow-x: auto }
+table.t th, table.t td { border-bottom: 1px solid var(--line); padding: 6px 8px; text-align: right; vertical-align: top }
+table.t th { color: var(--muted); font-weight: 600 }
+table.t td.n { font-variant-numeric: tabular-nums; text-align: center }
+.up { color: var(--ok); font-weight: 700 } .dn { color: var(--warn); font-weight: 700 }
+.reveal { justify-self: start; font: inherit; border: 1px dashed var(--line); background: transparent; color: var(--muted); border-radius: 10px; padding: 8px 14px; cursor: pointer }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden }
+.seg button { font: inherit; font-weight: 600; border: 0; background: var(--panel); color: var(--muted); padding: 7px 14px; cursor: pointer }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--panel) }
+/* side panel */
+.scrim { position: fixed; inset: 0; background: color-mix(in srgb, var(--ink) 35%, transparent); z-index: 20 }
+aside.drawer { position: fixed; top: 0; bottom: 0; left: 0; width: min(560px, 100%); background: var(--panel); z-index: 21; overflow-y: auto; border-inline-end: 1px solid var(--line);
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) 20px calc(env(safe-area-inset-bottom, 0px) + 24px) max(20px, env(safe-area-inset-left, 0px)); display: grid; gap: 12px; align-content: start }
+aside.drawer.wide { width: min(1180px, 100%) }
+.close { justify-self: end; font: inherit; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 4px 12px; cursor: pointer }
+.kv { display: grid; grid-template-columns: 110px 1fr; gap: 4px 12px; font-size: .92rem }
+.kv dt { color: var(--muted) } .kv dd { margin: 0 }
+.comp { display: flex; height: 22px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line) }
+.comp div { display: flex; align-items: center; justify-content: center; font-size: .72rem; color: var(--panel); white-space: nowrap; overflow: hidden }
+.m-supervised { background: var(--accent) } .m-oral { background: var(--ok) } .m-unsupervised { background: var(--warn) } .m-unclear, .m-attendance, .m-inclass { background: var(--muted) }
+ul.clean { margin: 0; padding-inline-start: 18px } ul.clean li { margin: 2px 0 }
+/* week grid */
+.weeks { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px }
+.wk h4 { margin: 0 0 6px; font-size: .95rem }
+.wkg { display: grid; gap: 3px }
+.dh { text-align: center; font-size: .78rem; font-weight: 700; background: var(--bg); border-radius: 4px }
+.dc { position: relative; border: 1px solid var(--line); border-radius: 4px; background: var(--bg) }
+.hl { position: absolute; left: 0; right: 0; border-top: 1px dotted var(--line); font-size: .62rem; color: var(--muted) }
+.hl span { position: absolute; left: 2px; top: -1px }
+.ss { position: absolute; border-radius: 4px; padding: 1px 3px; font-size: .68rem; line-height: 1.15; overflow: hidden; background: color-mix(in srgb, var(--cc) 18%, var(--panel)); border-inline-start: 3px solid var(--cc) }
+.ss.tir { background: color-mix(in srgb, var(--cc) 7%, var(--panel)); border: 1px dashed var(--cc); border-inline-start: 3px solid var(--cc) }
+.ss.el { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--cc) 14%, var(--panel)) 0 4px, var(--panel) 4px 8px) }
+.ss.blk { --cc: var(--ok) }
+.ss b { display: block; font-weight: 700 } .ss .tm { direction: ltr; unicode-bidi: isolate }
+.wm { font-size: .8rem; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums } .wm b { color: var(--ink) }
+.wn { font-size: .78rem; color: var(--muted); margin: 4px 0 0; padding-inline-start: 16px }
+@media (prefers-reduced-motion: no-preference) { .tile, .chip { transition: background .15s } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+<header class="top">
+  <div class="toprow">
+    <h1>מדעי המחשב בספיר · תשפ"ז</h1>
+    <span class="sub">ועדת ההוראה, 25.11.2026 · מצב קיים, לפי הסילבוסים ומערכת השעות</span>
+  </div>
+  <nav class="tabs" aria-label="חלקי העמוד">
+    <a href="#path">המסלול</a>
+    <a href="#gaps">הפערים</a>
+    <a href="#ai">מה השתנה בעולם</a>
+    <a href="#questions">שאלות לוועדה</a>
+    <a href="#directions" id="dirTab">כיוונים לדיון</a>
+  </nav>
+</header>
+
+<main id="app"><p class="muted">טוען נתונים…</p></main>
+</div>
+<div id="overlay"></div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const hm = m => String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0');
+const SEMN = { y1a: 'שנה א · סמסטר א', y1b: 'שנה א · סמסטר ב', y2a: 'שנה ב · סמסטר א', y2b: 'שנה ב · סמסטר ב', y3a: 'שנה ג · סמסטר א', y3b: 'שנה ג · סמסטר ב' };
+const SEML = { y1a: 'א', y1b: 'ב', y2a: 'א', y2b: 'ב', y3a: 'א', y3b: 'ב' };
+const cc = cat => `var(--c-${cat || 'el'})`;
+let D = null, track = 'general', dirState = 'today';
+try { track = localStorage.getItem('track') || 'general' } catch (e) {}
+
+fetch('data.json').then(r => r.json()).then(d => { D = d; route(); }).catch(() => { $('#app').innerHTML = '<p>לא ניתן לטעון את הנתונים.</p>'; });
+window.addEventListener('hashchange', route);
+
+function route() {
+  if (!D) return;
+  let v = (location.hash || '#path').slice(1);
+  if (!['path', 'gaps', 'ai', 'questions', 'directions'].includes(v)) v = 'path';
+  
+  document.querySelectorAll('nav.tabs a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + v ? 'page' : 'false'));
+  $('#app').innerHTML = { path: viewPath, gaps: viewGaps, ai: viewAI, questions: viewQuestions, directions: viewDirections }[v]();
+  bind();
+  window.scrollTo(0, 0);
+}
+
+/* ---------- the degree map ---------- */
+function electivesFor(sem, n) {
+  const semL = SEML[sem], T = D.tracks[track];
+  const offered = D.electives.filter(e => e.sems.includes(semL));
+  if (track === 'general') return { tiles: Array.from({ length: n }, () => `<div class="tile slot">קורס בחירה</div>`).join(''), note: '' };
+  const mine = offered.filter(e => T.list.includes(e.id));
+  let html = mine.map(e => { const cl = []; return `<button class="tile${cl.length ? ' clash' : ''}" data-course="${e.id}" style="--cc:${cc(e.dom)}">${esc(e.name)} <span class="tag">מסלול</span>${cl.length ? `<span class="tag w">מתנגש עם ${esc(cl[0].with)}</span>` : ''}</button>`; }).join('');
+  if (!mine.length) html = `<div class="emptyTrack">אין בסמסטר הזה אף קורס של מסלול ${esc(T.name)}. הסטודנט בוחר ${n} מקורסים אחרים.</div>`;
+  return { tiles: html, note: '' };
+}
+function trackNote() {
+  if (track === 'general') return 'הליבה זהה לכל הסטודנטים. בחרו מסלול כדי לראות אילו קורסים שלו נפתחים בפועל בכל סמסטר שבו התכנית מציבה בחירה.';
+  if (track === 'pm') return 'במסלול ניהול מוצר שמונה קורסי התמחות (18 נ"ז) באים במקום ששת קורסי הבחירה. לפי ראש המחלקה, חמישה מהם עדיין לא פותחו.';
+  const T = D.tracks[track]; const n = { y2b: 2, y3a: 1, y3b: 3 };
+  const got = Object.entries(n).map(([s]) => D.electives.filter(e => e.sems.includes(SEML[s]) && T.list.includes(e.id)).length);
+  const clash = D.electives.filter(e => T.list.includes(e.id) && e.clashes.length);
+  return `מסלול ${esc(T.name)}: קורסי המסלול שנפתחים בתשפ"ז – ${got[0]} בשנה ב סמסטר ב, ${got[1]} בשנה ג סמסטר א, ${got[2]} בשנה ג סמסטר ב. שם המסלול מופיע באישור הזכאות בלבד, ובאתר לא כתוב כמה קורסי מסלול נדרשים.`;
+}
+function mapHTML(state) {
+  const src = state === 'B' ? D.B : D.today;
+  return `<div class="map">` + src.map(s => {
+    const list = s.courses;
+    const nz = list.reduce((a, c) => a + (+c.nz || 0), 0) + (state === 'B' ? { y3a: 6, y3b: 9 }[s.key] || 0 : (s.electives || 0) * 3);
+    let tiles = list.map(c => {
+      const det = D.details[c.id];
+      let tags = '';
+      if (state === 'today') { if (!det) tags = '<span class="tag w">אין סילבוס</span>'; }
+      if (state === 'B') { if (c.st === 'new') tags = '<span class="tag n">חדש</span>'; else if (c.st === 'cut' || (c.was && c.was > c.nz)) tags = `<span class="tag">${c.was}←${c.nz}</span>`; }
+      if (state !== 'B' && ['proj1', 'proj2'].includes(c.id)) tags += '<span class="tag">או: בית תוכנה / מעבדת גיימינג</span>';
+      if (state === 'A' && ['oop', 'digital', 'sysprog', 'webproj', 'web', 'proj1', 'proj2'].includes(c.id)) tags += '<span class="tag n">פרויקט לקוח</span>';
+      return `<button class="tile" data-course="${c.id}" style="--cc:${cc(c.cat)}">${esc(c.name)} <span class="nz">${c.nz || 0} נ"ז</span>${tags}</button>`;
+    }).join('');
+    if (state !== 'B' && ['y3a', 'y3b'].includes(s.key)) tiles += `<button class="tile" data-course="career" style="--cc:var(--c-proj)">פיתוח מיומנויות קריירה <span class="nz">3 נ"ז</span><span class="tag">לא בטבלת התכנית</span></button>`;
+    const nEl = state === 'B' ? ({ y3a: 2, y3b: 3 }[s.key] || 0) : (s.electives || 0);
+    if (nEl) { if (track === 'pm') tiles += `<div class="tile slot">בתכנית ניהול מוצר: קורסי התמחות</div>`; else tiles += electivesFor(s.key, nEl).tiles; }
+    if (state === 'B' && track !== 'general' && track !== 'pm' && !nEl) {}
+    return `<div class="sem"><div class="semhead"><b>${SEMN[s.key]}</b><span>${nz} נ"ז</span></div>${tiles}<button class="weekBtn" data-week="${s.key}">השבוע של הסטודנט ›</button></div>`;
+  }).join('') + `</div>`;
+}
+function legendHTML(state) {
+  const tot = state === 'B' ? { math: 33, theory: 17, sys: 15, prog: 17, data: 4, ai: 6, se: 5, eth: 1, proj: 7, el: 15 } : D.totals.today;
+  return `<div class="legend">` + Object.entries(D.cats).map(([k, v]) => `<span style="--cc:${cc(k)}"><i></i>${esc(v)} <b class="${tot[k] === 0 ? 'zero' : ''}">${tot[k] ?? 0}</b></span>`).join('') + `</div>`;
+}
+function viewPath() {
+  const chips = [['general', 'כל הסטודנטים'], ['ai', 'מסלול בינה מלאכותית'], ['cyber', 'מסלול סייבר'], ['data', 'מסלול מדעי הנתונים'], ['pm', 'ניהול מוצר']];
+  return `<section class="view">
+    <p class="lead">המסלול הרגיל בשלוש שנים: 120 נ"ז לפי טבלת תכנית הלימודים באתר המכללה (בראש אותו דף כתוב 128; ההפרש כנראה לימודים כלליים, לא אומת). לחיצה על קורס מראה מה כתוב בסילבוס שלו: נושאים, הרכב הציון והתייחסות ל-AI. לחיצה על "השבוע של הסטודנט" מראה את מערכת השעות של תשפ"ז.</p>
+    <div class="chips" role="group" aria-label="מסלול">${chips.map(([k, l]) => `<button class="chip" data-track="${k}" aria-pressed="${track === k}">${l}</button>`).join('')}</div>
+    <p class="trackNote small">${trackNote()}</p>
+    ${mapHTML('today')}
+    ${track === 'pm' ? pmHTML() : ''}
+    <div><h3>נקודות הזכות בחובה, לפי תחום</h3>${legendHTML('today')}<p class="small muted">באדום: תחום שאין בו אף קורס חובה. אבטחת מידע נמצאת בבחירה בלבד, ולכן אינה בסכום של "הנדסת תוכנה ואבטחה".</p></div>
+  </section>`;
+}
+function pmHTML() {
+  const by = { 'א': [], 'ב': [], 'קיץ': [] }; for (const c of D.pm) (by[c.sem] || (by[c.sem] = [])).push(c);
+  return `<div class="card"><h3>קורסי ההתמחות בניהול מוצר</h3><div class="map" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">` + Object.entries(by).map(([s, l]) => `<div class="sem"><div class="semhead"><b>סמסטר ${s}</b></div>` + l.map(c => `<button class="tile" data-course="${c.id}" style="--cc:var(--c-proj)">${esc(c.name)} <span class="nz">${c.nz} נ"ז</span>${c.syl ? '' : `<span class="tag w">${c.note ? 'טרם פותח' : 'אין סילבוס'}</span>`}</button>`).join('') + `</div>`).join('') + `</div><p class="small muted">התכנית אינה מציינת שנה לקורסי ההתמחות, רק סמסטר.</p></div>`;
+}
+
+/* ---------- course panel ---------- */
+const MODE = { supervised: 'בפיקוח', oral: 'בעל פה', unsupervised: 'בלי פיקוח', unclear: 'לא ברור', attendance: 'נוכחות', inclass: 'בכיתה' };
+const AIP = { none: 'הסילבוס אינו מתייחס לכלי AI', require: 'הסילבוס מחייב שימוש ב-AI', allow_with_conditions: 'מותר בתנאים', allow: 'מותר', forbid: 'אסור' };
+function openCourse(id) {
+  const det = D.details[id], all = [...D.today.flatMap(s => s.courses), ...D.B.flatMap(s => s.courses), ...D.electives, ...D.pm];
+  const c = all.find(x => x.id === id) || { name: id };
+  const b = D.B.flatMap(s => s.courses).find(x => x.id === id);
+  const tt = (D.times[id] || []).filter(t => !t.prac);
+  let h = `<button class="close" data-close>סגירה</button><h2>${esc(c.name)}</h2>`;
+  if (det) {
+    h += `<dl class="kv"><dt>סילבוס</dt><dd>${esc(det.syllabus || '—')}${det.lecturer ? ' · ' + esc(det.lecturer) : ''}</dd>
+      <dt>הרכב הציון</dt><dd>${det.components.length ? `<div class="comp">${det.components.map(x => `<div class="m-${x.mode}" style="width:${x.weight}%" title="${esc(x.name)} ${x.weight}% · ${MODE[x.mode] || ''}">${x.weight >= 12 ? esc(x.name) + ' ' + x.weight + '%' : ''}</div>`).join('')}</div><div class="small muted">${det.components.map(x => `${esc(x.name)} ${x.weight}% (${MODE[x.mode] || x.mode})`).join(' · ')}</div>` : esc(det.assessment || 'לא מפורט')}</dd>
+      <dt>תנאי מעבר</dt><dd>${det.passExam ? 'ציון עובר במבחן הוא תנאי למעבר' : 'לא כתוב תנאי מעבר במבחן'}${det.defense ? ' · יש הגנה בעל פה' : ''}</dd>
+      <dt>AI</dt><dd>${esc(AIP[det.ai] || det.ai)}${det.aiContent ? ' · AI הוא חלק מתוכן הקורס' : ''}</dd>
+      ${tt.length ? `<dt>מועדים</dt><dd>${tt.map(t => `סמסטר ${t.sem === 'ק' ? 'קיץ' : t.sem}, יום ${t.day} <span dir="ltr">${hm(t.from)}–${hm(t.to)}</span>${t.who ? ' · ' + esc(t.who) : ''}${t.pm ? ' (ניהול מוצר)' : ''}`).join('<br>')}</dd>` : ''}
+    </dl>`;
+    if (det.outcomes.length) h += `<div><h3>תוצרי למידה${det.derived ? ' (נגזרו מהנושאים)' : ''}</h3><ul class="clean">${det.outcomes.map(o => `<li>${esc(o)}</li>`).join('')}</ul></div>`;
+    if (det.topics.length) h += `<div><h3>נושאים</h3><ul class="clean">${det.topics.map(o => `<li>${esc(o)}</li>`).join('')}</ul></div>`;
+  } else h += `<p class="muted">${c.note ? esc(c.note) : 'לקורס הזה אין סילבוס במאגר.'}</p>`;
+  if (b && b.chg) h += `<div class="say"><b>בהצעה ב</b>${esc(b.chg)}</div>`;
+  showPanel(h, false);
+}
+function showPanel(html, wide) {
+  $('#overlay').innerHTML = `<div class="scrim" data-close></div><aside class="drawer${wide ? ' wide' : ''}" role="dialog" aria-modal="true">${html}</aside>`;
+  $('#overlay').querySelectorAll('[data-close]').forEach(e => e.addEventListener('click', () => $('#overlay').innerHTML = ''));
+  $('#overlay').querySelectorAll('[data-course]').forEach(b => b.addEventListener('click', () => openCourse(b.dataset.course)));
+  const cl = $('#overlay .close'); if (cl) cl.focus();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#overlay').innerHTML = ''; });
+
+/* ---------- student week ---------- */
+function weekFor(sem) {
+  const yr = sem[1], s = sem[2] === 'a' ? 'א' : 'ב';
+  let title = { 1: 'שנה א', 2: 'שנה ב' }[yr];
+  if (yr === '3') title = 'שנה ג · מסלול ' + ({ ai: 'בינה מלאכותית', cyber: 'סייבר', data: 'מדעי הנתונים' }[track] || 'בינה מלאכותית');
+  return D.weeks.find(w => w.title === title && w.sem === s);
+}
+const CATOF = id => { const t = D.today.flatMap(s => s.courses).find(c => c.id === id) || D.B.flatMap(s => s.courses).find(c => c.id === id); if (t) return t.cat; const e = D.electives.find(c => c.id === id); return e ? e.dom : 'el'; };
+function gridHTML(ses) {
+  if (!ses.length) return '<p class="muted small">אין שיעורים.</p>';
+  const days = ['א', 'ב', 'ג', 'ד', 'ה', 'ו'].filter(d => ses.some(s => s.day === d));
+  const t0 = Math.floor(Math.min(...ses.map(s => s.from)) / 60) * 60, t1 = Math.ceil(Math.max(...ses.map(s => s.to)) / 60) * 60, px = .55;
+  const cols = days.map(d => {
+    const its = ses.filter(s => s.day === d).sort((a, b) => a.from - b.from); const lane = [];
+    for (const s of its) { let i = lane.findIndex(e => e <= s.from); if (i < 0) { i = lane.length; lane.push(0); } lane[i] = s.to; s._l = i; }
+    for (const s of its) s._n = Math.max(1, ...its.filter(x => x.from < s.to && s.from < x.to).map(x => x._l + 1));
+    let hl = ''; for (let h = t0 / 60 + 1; h < t1 / 60; h++) hl += `<div class="hl" style="top:${(h * 60 - t0) * px}px"><span>${h}</span></div>`;
+    return `<div><div class="dh">${d}</div><div class="dc" style="height:${(t1 - t0) * px}px">${hl}` + its.map(s => {
+      const w = 100 / s._n, st = `top:${(s.from - t0) * px}px;height:${Math.max(16, (s.to - s.from) * px - 2)}px;right:${s._l * w}%;width:calc(${w}% - 2px);--cc:${cc(CATOF(s.cid))}`;
+      if (s.kind === 'blk') return `<div class="ss blk" style="${st}"><b>בלוקים (יומיים בשבוע)</b>${s.blocks.map((b, i) => `${i + 1}. ${esc(b.name)}${b.est ? '*' : ''}: שבועות <span class="tm">${b.from}–${b.to}</span>, <span class="tm">${(b.perDay / 60).toFixed(1)}</span> ש' ביום`).join('<br>')}<br>האקתון בסוף כל בלוק</div>`;
+      return `<div class="ss${s.kind === 'tir' ? ' tir' : ''}${s.el ? ' el' : ''}" style="${st}" title="${esc(s.name)} ${hm(s.from)}–${hm(s.to)} ${esc(s.who)}"><b>${esc(s.name)}${s.est ? '*' : ''}</b>${s.kind === 'tir' ? 'תרגול · ' : ''}${s.el ? 'בחירה · ' : ''}<span class="tm">${hm(s.from)}–${hm(s.to)}</span></div>`;
+    }).join('') + `</div></div>`;
+  }).join('');
+  return `<div class="wkg" style="grid-template-columns:repeat(${days.length},minmax(0,1fr))">${cols}</div>`;
+}
+const mline = m => m ? `<div class="wm">עד <b>${m.maxC}</b> קורסים ביום · <b>${(m.mins / 60).toFixed(1)}</b> שעות בשבוע · חלונות <b>${(m.gaps / 60).toFixed(1)}</b> ש'</div>` : '';
+function openWeek(sem, withProposals) {
+  const w = weekFor(sem); if (!w) return;
+  let h = `<button class="close" data-close>סגירה</button><h2>השבוע של הסטודנט · ${esc(w.title)} · סמסטר ${w.sem}</h2>`;
+  if (w.note) h += `<p class="small muted">${esc(w.note)}</p>`;
+  if (sem.startsWith('y1')) h += `<p class="small muted">מחזור אוקטובר (מתחילים בסמסטר א). מחזור האביב מופיע למטה.</p>`;
+  h += `<p class="small muted">קבוצת ההרצאה והתרגול הראשונות שאינן מתנגשות, לפי מערכת השעות מ-19.11.2026. ימים ד–ה פנויים לסטודנטים שעובדים.</p>`;
+  if (!withProposals) h += `<div class="wk">${gridHTML(w.cur)}${mline(w.m.cur)}</div>`;
+  else h += `<div class="weeks"><div class="wk"><h4>היום</h4>${gridHTML(w.cur)}${mline(w.m.cur)}</div><div class="wk"><h4>הצעה א · כללי שיבוץ</h4>${gridHTML(w.A.ses)}${mline(w.m.A)}${w.A.notes.length ? `<ul class="wn">${w.A.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}</div>${w.B ? `<div class="wk"><h4>הצעה ב · יסודות בריווח, נושאים בבלוקים</h4>${gridHTML(w.B.ses)}${mline(w.m.B)}${w.B.notes.length ? `<ul class="wn">${w.B.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}</div>` : ''}</div><p class="small muted">* שעות משוערות. הדמיה להמחשה: חדרים וזמינות מרצים בהצעה ב לא נבדקו.</p>`;
+  if (sem.startsWith('y1') && D.spring) h += `<h3>מחזור אביב (מתחילים בסמסטר ב)</h3><div class="weeks"><div class="wk"><h4>סמסטר ב – הסמסטר הראשון שלהם</h4>${gridHTML(D.spring.B)}</div><div class="wk"><h4>קיץ – הסמסטר השני שלהם</h4>${gridHTML(D.spring.K)}</div></div><p class="small muted">מערכות ספרתיות ומבוא למתמטיקה אינם נפתחים בסמסטר ב במסלול הרגיל; חדו"א 1 אינו נפתח בקיץ. ההנחה: מי שמתחיל באביב עומד בדרישת המתמטיקה, ומי שמתקבל על תנאי עומד בתנאי בחדו"א 1.</p>`;
+  showPanel(h, true);
+}
+
+/* ---------- gaps ---------- */
+function viewGaps() {
+  const card = (num, w, t, p) => `<div class="card"><div class="num${w ? ' w' : ''}">${num}</div><h3>${t}</h3><p>${p}</p></div>`;
+  return `<section class="view">
+  <p class="lead">מה עולה מ-55 סילבוסים ומערכת השעות של תשפ"ז. העובדות בלבד; הפרטים בכל קורס זמינים במפה.</p>
+  <div class="group"><h3>תוכן</h3><div class="cards">
+    ${card('0', 1, 'קורסי חובה ב-AI, באבטחה ובאתיקה', 'שלושת התחומים נמצאים רק בבחירה. הקווים המנחים של המל"ג מ-2016 ממליצים לכלול את שלושתם.')}
+    ${card('3', 0, 'כפילויות בין קורסים עוקבים', 'תכנות מונחה עצמים בשלושה קורסים, גזירה ואינטגרציה בשלושה, הוכחה באינדוקציה בשלושה.')}
+  </div></div>
+  <div class="group"><h3>הערכה, בעידן שבו לכל סטודנט יש סוכן קוד</h3><div class="cards">
+    ${card('25/27', 0, 'קורסי חובה שבהם 70% ומעלה מהציון במבחן או בבוחן', 'המבחן בודק את הסטודנט עצמו. פרויקט הוא חלק מהציון רק ב-3 קורסי חובה, והצגה בעל פה רק בשנה ג.')}
+    ${card('19', 1, 'קורסים שבהם עבודה לא מפוקחת נספרת בציון בלי בדיקה', 'ב-21 קורסי חובה לתרגילי הבית יש משקל בציון. ב-19 מהם לא כתוב שהעבודה נבדקת בעל פה.')}
+    ${card('1/55', 1, 'סילבוסים עם כלל מפורש לשימוש ב-AI', 'כלי AI מופיעים בחמישה קורסים, כל אחד כהתנסות נפרדת, בלי רצף.')}
+  </div></div>
+  <div class="group"><h3>מערכת השעות והמסלולים</h3><div class="cards">
+    ${card('5/6', 1, 'סמסטרים עם יום של שלושה קורסים', 'סטודנט לומד 3–6 קורסי חובה במקביל, ובשנה א עד 6.5 שעות "חלון" בשבוע. הלימודים בימים א–ג, וימים ד–ה פנויים לסטודנטים שעובדים.')}
+    ${card('0', 1, 'קורסי מסלול AI ודאטה בשנה ג סמסטר א', 'בסמסטר הזה התכנית מציבה קורס בחירה אחד, ואף קורס של מסלולי הבינה המלאכותית ומדעי הנתונים אינו נפתח בו.')}
+    ${card('5', 0, 'קורסי ניהול מוצר שטרם פותחו', 'לפי ראש המחלקה הוגדרו רק שמות הקורסים.')}
+  </div></div>
+  </section>`;
+}
+/* ---------- the world ---------- */
+function viewAI() {
+  return `<section class="view">
+  <p class="lead">מה אומרים אנשי התחום ומה עושים מוסדות אחרים. הדברים נבדקו מול המקור ומובאים כאן בקיצור; הקישורים למי שרוצה לקרוא.</p>
+  <div class="cards">
+    <div class="card"><h3>אנדריי קרפתי</h3><p>מי שלא יכול לבנות משהו, לא מבין אותו. ומפתח צריך לשלוט היום בשלוש צורות תכנות: קוד, רשתות נוירונים ופרומפטים. ה-AI מייצר, והאדם מאמת.</p><p class="src">מקור: <a href="https://www.dwarkesh.com/p/andrej-karpathy" target="_blank" rel="noopener">ראיון לדווארקש פאטל, 10.2025</a> · <a href="https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again" target="_blank" rel="noopener">הרצאה ב-YC, 6.2025</a> · <a href="https://singjupost.com/?p=54818" target="_blank" rel="noopener">תמליל ההרצאה (לא רשמי)</a></p></div>
+    <div class="card"><h3>אנדרו אנג</h3><p>היסודות עדיין חשובים: בלי להבין איך מחשב עובד אי אפשר להגיע רחוק רק בעזרת AI. ובאותה נשימה: לא לכתוב יותר קוד בדרך הישנה.</p><p class="src">מקור: <a href="https://www.deeplearning.ai/the-batch/issue-317" target="_blank" rel="noopener">The Batch, 9.2025</a> · <a href="https://www.businessinsider.com/andrew-ng-says-everyone-should-learn-to-vibe-code-ai-2025-11" target="_blank" rel="noopener">Business Insider, 11.2025</a></p></div>
+    <div class="card"><h3>ג'פרי הינטון</h3><p>מתכנת בינוני בלבד לא יהיה מקצוע עוד הרבה זמן, כי AI עושה את זה.</p><p class="src">מקור: <a href="https://www.businessinsider.com/godfather-ai-geoffrey-hinton-cs-degrees-valuable-learn-to-code-2025-12" target="_blank" rel="noopener">Business Insider, 12.2025</a></p></div>
+    <div class="card"><h3>ג'נסן הואנג</h3><p>הנדסה מלמדת לחשוב מעקרונות יסוד, מתמטיקה ופיזיקה.</p><p class="src">מקור: <a href="https://fortune.com/2026/04/29/nvidia-ceo-jensen-huang-engineering-path-to-success-ai-era-gen-z-advice-ieee-medal-of-honor-winner/" target="_blank" rel="noopener">Fortune, 4.2026</a></p></div>
+  </div>
+  <div class="tw"><table class="t"><tr><th>מוסד</th><th>מה הם עושים</th></tr>
+    <tr><td><b><a href="https://www.telhai.ac.il/sites/default/files/2026-06/Artificial%20Intelligence%20Sytstems%20Engineering.pdf" target="_blank" rel="noopener">תל-חי</a></b></td><td>תואר חדש בהנדסת מערכות בינה מלאכותית: AI מהסמסטר הראשון, פרויקטים בכל שנה, קורס חובה באתיקה. בלי חישוביות וסיבוכיות בחובה.</td></tr>
+    <tr><td><b><a href="https://www.colman.ac.il/academics/ba/computer-science/" target="_blank" rel="noopener">המכללה למינהל</a></b></td><td>AI בתוך התואר במדעי המחשב: סוכני AI כחלק מסביבת העבודה, וקורסים כמו תכנות מונחה AI.</td></tr>
+    <tr><td><b><a href="https://www.themarker.com/news/education/2026-06-24/ty-article/0000019e-f9ba-d514-a9bf-f9fbace90000" target="_blank" rel="noopener">המל"ג, 2026</a></b></td><td>אישרה מסלולי תואר ראשון ב-AI בשבעה מוסדות, כחלופה למדעי המחשב. מספר הסטודנטים למדעי המחשב ירד ב-14% מהשיא של 2023.</td></tr>
+    <tr><td><b><a href="https://www.en.aau.dk/education/problem-based-learning" target="_blank" rel="noopener">אלבורג, דנמרק</a></b></td><td>מאז 1974: בכל סמסטר כחצי מהזמן הולך לפרויקט צוותי, וחצי לקורסים שתומכים בו. גם במדעי המחשב.</td></tr>
+  </table></div>
+  <div class="card"><h3>ממחקרי הלמידה</h3><p>בתוך יום, כל מעבר בין נושאים עולה בריכוז. לאורך שבועות, חזרה במרווחים ותרגול מעורב משפרים את הזכירה. מכאן: מעט נושאים ביום, וחזרה לנושאים לאורך הסמסטר.</p><p class="src">מקור: <a href="https://www.uwb.edu/business/faculty/sophie-leroy/attention-residue" target="_blank" rel="noopener">Leroy, "שארית קשב"</a> · <a href="https://www.scrum.org/node/47056" target="_blank" rel="noopener">Weinberg, מעבר בין פרויקטים</a> · <a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener">Cepeda ועמיתיו 2006, ריווח</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/31556629/" target="_blank" rel="noopener">Brunmair ו-Richter 2019, שזירה</a> · <a href="https://www.vu.edu.au/mitchell-institute/tertiary-education/inside-the-black-box-of-the-vu-block-model" target="_blank" rel="noopener">Victoria University, בלוקים</a></p></div>
+  </section>`;
+}
+/* ---------- questions ---------- */
+function viewQuestions() {
+  const q = (t, why, a, b) => `<div class="q"><h3>${t}</h3><p class="why">${why}</p><div class="say small"><b>שתי דרכים לחשוב על זה</b>${a}<br>${b}</div></div>`;
+  return `<section class="view">
+  <p class="lead">לא מבקשים החלטה היום. אלה השאלות שהמצב הקיים מעלה, ושכדאי לחשוב עליהן עד הישיבה הבאה.</p>
+  ${q('1. האם בוגר שלנו צריך ללמוד AI בחובה?', 'היום אפשר לסיים את התואר בלי אף קורס בלמידת מכונה, באבטחה או באתיקה.', 'דרך הבחירה: לחייב קורס אחד ממסלול ה-AI ואחד מהסייבר.', 'כקורסי חובה חדשים, על חשבון נקודות מתחומים אחרים.')}
+  ${q('2. איך נדע שהסטודנט עצמו יודע, כשיש לו סוכן קוד?', 'תרגילי בית נספרים בציון בלי בדיקה ב-19 קורסים, וכמעט אין הגנה בעל פה.', 'מבחן או בוחן בלי AI כתנאי מעבר בכל קורס, ובוחן כניסה על תרגילי ההכנה.', 'הגנה בעל פה על כל פרויקט, ותיעוד השיחה עם ה-AI שמוגש עם העבודה.')}
+  ${q('3. האם כל קורס צריך פרויקט, ומי הלקוח?', 'פרויקט נכנס לציון ב-3 קורסי חובה בלבד. בוגר יוצא עם מעט עבודות שמישהו השתמש בהן.', 'פרויקט בכל קורס, בשלוש רמות: לקוח, בנייה, חישובי קטן.', 'קורס עוגן אחד בכל סמסטר שבו הסטודנט מוצא לקוח אמיתי.')}
+  ${q('4. מה נעשה עם העומס ומבנה השבוע?', 'בחמישה מששת הסמסטרים יש ימים עם שלושה קורסים, ובשנה ג שבעה-שמונה קורסים במקביל.', 'כללי שיבוץ: עד שני קורסים ביום, בלי חלונות ארוכים.', 'יסודות לאורך הסמסטר, ונושאים יישומיים בבלוקים של חודש שמסתיימים בהאקתון.')}
+  ${q('5. האם המסלולים אמיתיים?', 'בשנה ג סמסטר א לא נפתח אף קורס של מסלולי AI ודאטה, ובאתר לא כתוב כמה קורסי מסלול נדרשים.', 'לתאם את מערכת הבחירה עם המסלולים.', 'לקבוע כמה קורסי מסלול נדרשים, ולהבטיח שהם נפתחים.')}
+  <div class="card"><h3>צעד הבא שאפשר להסכים עליו כבר היום</h3><p>צוות עבודה קטן לניסוח כיוונים לישיבה הבאה, ושניים-שלושה מרצים שמוכנים לנסות בסמסטר הבא בוחן כניסה או הגנה בעל פה בקורס שלהם.</p></div>
+  <button class="reveal" data-reveal>כיוונים לדיון ›</button>
+  </section>`;
+}
+/* ---------- directions (opened on request) ---------- */
+function viewDirections() {
+  const pr = (t, p) => `<div class="card"><h3>${t}</h3><p>${p}</p></div>`;
+  return `<section class="view">
+  <p class="lead"><b>אפשרויות לדיון, לא החלטה.</b> אחת האפשרויות שבדקתי, כדי שיהיה על מה לחשוב יחד. ארבעה עקרונות משותפים, ושתי דרכים ליישם אותם: שינוי בתוך המסגרת הקיימת, או מבנה חדש.</p>
+  <div class="cards">
+    ${pr('ליבה מוגנת', 'המתמטיקה (33 נ"ז) והאלגוריתמים והתיאוריה (17) לא משתנים. בוגר צריך לעמוד באותן דרישות לתואר שני כמו כל בוגר מדעי המחשב.')}
+    ${pr('כל פרויקט עונה על צורך של מישהו', 'קורס עוגן אחד בכל סמסטר, שבו הסטודנט מוצא בעצמו אדם או ארגון עם צורך, ומראה מה קרה כשהשתמשו בפתרון.')}
+    ${pr('AI מלווה כל סטודנט בכל קורס', 'בקורסי היסוד מדריך שאינו נותן את הפתרון, במתקדמים כלי עבודה. המרצה מקבל סיכום שבועי ברמת הכיתה.')}
+    ${pr('שלושה רכיבים בכל קורס', 'פרויקט, עבודה שוטפת, ומבחן או בוחן בלי AI כתנאי מעבר. לפחות חצי מהציון בפיקוח או בעל פה.')}
+  </div>
+  <div class="chips"><span class="seg" role="group" aria-label="מצב">${[['today', 'היום'], ['A', 'הצעה א'], ['B', 'הצעה ב']].map(([k, l]) => `<button data-state="${k}" aria-pressed="${dirState === k}">${l}</button>`).join('')}</span>
+    <span class="small muted">${{ today: 'התכנית כפי שהיא.', A: 'אותם קורסים ואותן נקודות. משתנים ההערכה, תפקיד ה-AI, קורסי העוגן ומערכת השעות.', B: '120 נ"ז כמו היום. AI, אבטחה ואתיקה בחובה; פחות תכנות "קלאסי" ופחות בחירה.' }[dirState]}</span></div>
+  ${mapHTML(dirState === 'B' ? 'B' : dirState === 'A' ? 'A' : 'today')}
+  ${legendHTML(dirState === 'B' ? 'B' : 'today')}
+  ${dirState === 'A' ? `<div class="tw"><table class="t"><tr><th>השינוי בהצעה א</th><th>על איזה ממצא הוא עונה</th></tr>
+    <tr><td>כל סילבוס מצהיר מה תפקיד ה-AI ואילו רכיבים נבחנים בלעדיו</td><td>כלל מפורש בסילבוס אחד מ-55</td></tr>
+    <tr><td>פרויקט, עבודה שוטפת עם בוחן כניסה, ומבחן בלי AI כתנאי מעבר</td><td>19 קורסים עם עבודה לא מפוקחת בציון</td></tr>
+    <tr><td>קורס עוגן עם לקוח אמיתי בכל סמסטר; הגנה בעל פה</td><td>פרויקט בציון ב-3 קורסי חובה</td></tr>
+    <tr><td>פיילוט של מלווה AI בשניים-שלושה קורסים</td><td>AI בחמישה קורסים, בלי רצף</td></tr>
+    <tr><td>בדיקות ואימות כשיטת עבודה; Git ו-CI משנה א</td><td>בקרת גרסאות ופריסה אינן תוצר למידה</td></tr>
+    <tr><td>קורס בחירה חובה ממסלול ה-AI ומהסייבר; יחידת אתיקה</td><td>אין AI, אבטחה ואתיקה בחובה</td></tr>
+    <tr><td>כללי שיבוץ: עד שני קורסים ביום</td><td>ימים עם שלושה קורסים</td></tr></table></div>` : ''}
+  <div class="card"><h3>השבוע של הסטודנט לפני ואחרי</h3><p>הדוגמה שממחישה הכי טוב: שנה ב סמסטר ב. ביום א אלגוריתמים ונומריות לאורך כל הסמסטר, ובימים ב–ג שלושה בלוקים שמסתיימים בהאקתון.</p><p style="margin-top:8px"><button class="weekBtn" data-weekp="y2b">שנה ב סמסטר ב: היום, הצעה א והצעה ב ›</button> <button class="weekBtn" data-weekp="y1a">שנה א סמסטר א ›</button> <button class="weekBtn" data-weekp="y3b">שנה ג סמסטר ב ›</button></p></div>
+  <div class="card"><h3>מה מפסידים בהצעה ב</h3><p>פחות בחירה (15 נ"ז מול 18), פרויקט גמר קטן יותר (6 מול 8), ארבעה קורסים מצטמצמים בנקודה. נדרשים מרצים לשני קורסי AI, שעות להגנות ורישיונות לסוכן קוד. אין מחקר שמראה שמבנה כזה מוציא בוגרים טובים יותר, ולכן מוצע להתחיל בפיילוט.</p></div>
+  </section>`;
+}
+
+function bind() {
+  document.querySelectorAll('[data-track]').forEach(b => b.addEventListener('click', () => { track = b.dataset.track; try { localStorage.setItem('track', track) } catch (e) {} route(); }));
+  document.querySelectorAll('[data-state]').forEach(b => b.addEventListener('click', () => { dirState = b.dataset.state; route(); }));
+  document.querySelectorAll('#app [data-course]').forEach(b => b.addEventListener('click', () => openCourse(b.dataset.course)));
+  document.querySelectorAll('[data-week]').forEach(b => b.addEventListener('click', () => openWeek(b.dataset.week, (location.hash || '') === '#directions')));
+  document.querySelectorAll('[data-weekp]').forEach(b => b.addEventListener('click', () => openWeek(b.dataset.weekp, true)));
+  const r = $('[data-reveal]'); if (r) r.addEventListener('click', () => { location.hash = 'directions'; });
+}
+</script>
+
+</body>
+</html>
