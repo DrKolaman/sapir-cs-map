@@ -102,11 +102,13 @@ aside.drawer { position: fixed; top: 0; bottom: 0; left: 0; width: min(560px, 10
   padding: calc(env(safe-area-inset-top, 0px) + 18px) 20px calc(env(safe-area-inset-bottom, 0px) + 24px) max(20px, env(safe-area-inset-left, 0px)); display: grid; gap: 12px; align-content: start }
 aside.drawer.wide { width: min(1180px, 100%) }
 .close { justify-self: end; font: inherit; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 8px; padding: 4px 12px; cursor: pointer }
-.kv { display: grid; grid-template-columns: 110px 1fr; gap: 4px 12px; font-size: .92rem }
+.kv { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 4px 12px; font-size: .92rem }
 .kv dt { color: var(--muted) } .kv dd { margin: 0 }
-.comp { display: flex; height: 26px; border-radius: 6px; overflow: hidden; gap: 2px; background: var(--panel) }
-.comp .seg { min-width: 0; display: flex; align-items: center; justify-content: center; background: var(--sc); color: #fff; font-size: .74rem; font-weight: 600; padding: 0 4px }
-.comp .seg span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.comp { display: flex; height: 40px; border-radius: 6px; overflow: hidden; gap: 2px; background: var(--panel) }
+.comp .seg { min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--sc); color: #fff; padding: 0 3px; line-height: 1.15; overflow: hidden }
+.comp .seg .sn { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .7rem }
+.comp .seg .sp { font-size: .78rem; white-space: nowrap; max-width: 100%; overflow: hidden }
+.kv dd { min-width: 0 }
 .comps { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; font-size: .88rem }
 .comps li { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap }
 .comps i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none }
@@ -246,7 +248,7 @@ function openCourse(id) {
   let h = `<button class="close" data-close>סגירה</button><h2>${esc(c.name)}</h2>`;
   if (det) {
     h += `<dl class="kv"><dt>סילבוס</dt><dd>${esc(det.syllabus || '—')}${det.lecturer ? ' · ' + esc(det.lecturer) : ''}</dd>
-      <dt>הרכב הציון</dt><dd>${det.components.length ? (det.components.some(x => x.weight) ? `<div class="comp">${det.components.filter(x => x.weight).map((x, k) => `<div class="seg" style="flex:${x.weight} 1 0;--sc:var(--g${k % 6 + 1})" title="${esc(x.name)} ${x.weight}% · ${MODE[x.mode] || ''}"><span dir="auto">${x.weight >= 25 ? esc(x.name.split('(')[0].trim()) + ' ' : ''}${x.weight >= 8 ? x.weight + '%' : ''}</span></div>`).join('')}</div>` : '') + `<ul class="comps">${det.components.map((x, k) => `<li><i style="background:${x.weight ? `var(--g${det.components.filter(y => y.weight).indexOf(x) % 6 + 1})` : 'var(--line)'}"></i><span dir="auto">${esc(x.name)}</span> <b>${x.weight != null ? x.weight + '%' : 'משקל לא מפורט'}</b> <span class="muted">· ${MODE[x.mode] || x.mode}</span></li>`).join('')}</ul>` : esc(det.assessment || 'לא מפורט')}</dd>
+      <dt>הרכב הציון</dt><dd>${det.components.length ? (det.components.some(x => x.weight) ? `<div class="comp">${det.components.filter(x => x.weight).map((x, k) => `<div class="seg" style="flex:${x.weight} 1 0;--sc:var(--g${k % 6 + 1})" title="${esc(x.name)} ${x.weight}% · ${MODE[x.mode] || ''}"><span class="sn" dir="auto">${esc(x.name.split('(')[0].trim())}</span><b class="sp">${x.weight}%</b></div>`).join('')}</div>` : '') + `<ul class="comps">${det.components.map((x, k) => `<li><i style="background:${x.weight ? `var(--g${det.components.filter(y => y.weight).indexOf(x) % 6 + 1})` : 'var(--line)'}"></i><span dir="auto">${esc(x.name)}</span> <b>${x.weight != null ? x.weight + '%' : 'משקל לא מפורט'}</b> <span class="muted">· ${MODE[x.mode] || x.mode}</span></li>`).join('')}</ul>` : esc(det.assessment || 'לא מפורט')}</dd>
       <dt>תנאי מעבר</dt><dd>${det.passExam ? 'ציון עובר במבחן הוא תנאי למעבר' : 'לא כתוב תנאי מעבר במבחן'}${det.defense ? ' · יש הגנה בעל פה' : ''}</dd>
       <dt>AI</dt><dd>${esc(AIP[det.ai] || det.ai)}${det.aiContent ? ' · AI הוא חלק מתוכן הקורס' : ''}</dd>
       ${tt.length ? `<dt>מועדים</dt><dd>${tt.map(t => `סמסטר ${t.sem === 'ק' ? 'קיץ' : t.sem}, יום ${t.day} <span dir="ltr">${hm(t.from)}–${hm(t.to)}</span>${t.who ? ' · ' + esc(t.who) : ''}${t.pm ? ' (ניהול מוצר)' : ''}`).join('<br>')}</dd>` : ''}
