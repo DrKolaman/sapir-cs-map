@@ -82,6 +82,8 @@ section.view { display: grid; gap: 18px }
 .card p.fix { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); color: var(--ink); font-size: .88rem } .card p.fix a { color: var(--accent); font-weight: 700; text-decoration: none }
 .card p.src, p.src { margin-top: 8px; font-size: .8rem } .src a, table.t a { color: var(--accent) }
 .group h3 { margin-bottom: 8px }
+.ellist li { margin: 6px 0 } .elrow { width: 100%; text-align: start; background: none; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; color: inherit; font: inherit; cursor: pointer; line-height: 1.6 } .elrow:hover { border-color: var(--accent) }
+button.tile.slot { cursor: pointer; color: var(--accent) }
 a.full { color: var(--accent); font-weight: 700 }
 .theme { margin-top: 8px } .chain { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.5fr); gap: 16px; margin-top: 10px; align-items: start }
 .chain h4 { margin: 0 0 8px; font-size: .85rem; color: var(--muted, #8a94a6); letter-spacing: .02em } .chain .cards { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) }
@@ -190,10 +192,11 @@ function route() {
 function electivesFor(sem, n) {
   const semL = SEML[sem], T = D.tracks[track];
   const offered = D.electives.filter(e => e.sems.includes(semL));
-  if (track === 'general') return { tiles: Array.from({ length: n }, () => `<div class="tile slot">קורס בחירה</div>`).join(''), note: '' };
+  if (track === 'general') return { tiles: Array.from({ length: n }, () => `<button class="tile slot" data-elslot="${sem}" data-n="${n}">קורס בחירה ›</button>`).join(''), note: '' };
   const mine = offered.filter(e => T.list.includes(e.id));
   let html = mine.map(e => { const cl = []; return `<button class="tile${cl.length ? ' clash' : ''}" data-course="${e.id}" style="--cc:${cc(e.dom)}">${esc(e.name)} <span class="tag">מסלול</span>${cl.length ? `<span class="tag w">מתנגש עם ${esc(cl[0].with)}</span>` : ''}</button>`; }).join('');
   if (!mine.length) html = `<div class="emptyTrack">אין בסמסטר הזה אף קורס של מסלול ${esc(T.name)}. הסטודנט בוחר ${n} מקורסים אחרים.</div>`;
+  html += `<button class="tile slot" data-elslot="${sem}" data-n="${n}">כל קורסי הבחירה בסמסטר ›</button>`;
   return { tiles: html, note: '' };
 }
 function trackNote() {
@@ -220,7 +223,7 @@ function mapHTML(state) {
     }).join('');
     if (state !== 'B' && ['y3a', 'y3b'].includes(s.key)) tiles += `<button class="tile" data-course="career" style="--cc:var(--c-proj)">פיתוח מיומנויות קריירה <span class="nz">3 נ"ז</span><span class="tag">לא בטבלת התכנית</span></button>`;
     const nEl = state === 'B' ? ({ y3a: 2, y3b: 3 }[s.key] || 0) : (s.electives || 0);
-    if (nEl) { if (track === 'pm') tiles += `<div class="tile slot">בתכנית ניהול מוצר: קורסי התמחות</div>`; else tiles += electivesFor(s.key, nEl).tiles; }
+    if (nEl) { if (track === 'pm') tiles += `<button class="tile slot" data-pmslot>בתכנית ניהול מוצר: קורסי התמחות ›</button>`; else tiles += electivesFor(s.key, nEl).tiles; }
     if (state === 'B' && track !== 'general' && track !== 'pm' && !nEl) {}
     return `<div class="sem"><div class="semhead"><b>${SEMN[s.key]}</b><span>${nz} נ"ז</span></div>${tiles}<button class="weekBtn" data-week="${s.key}">השבוע של הסטודנט ›</button></div>`;
   }).join('') + `</div>`;
@@ -266,6 +269,31 @@ function openCourse(id) {
     if (det.topics.length) h += `<div><h3>נושאים</h3><ul class="clean">${det.topics.map(o => `<li>${esc(o)}</li>`).join('')}</ul></div>`;
   } else h += `<p class="muted">${c.note ? esc(c.note) : 'לקורס הזה אין סילבוס במאגר.'}</p>`;
   if (b && b.chg) h += `<div class="say"><b>בהצעה ב</b>${esc(b.chg)}</div>`;
+  showPanel(h, false);
+}
+function openElectives(sem, n) {
+  const semL = SEML[sem], T = D.tracks[track];
+  const trk = e => ['ai', 'cyber', 'data'].filter(k => D.tracks[k].list.includes(e.id));
+  const mine = e => track !== 'general' && T && T.list && T.list.includes(e.id);
+  const row = (e, s) => {
+    const tt = (D.times[e.id] || []).filter(t => !t.prac && t.sem === s);
+    const cl = [];
+    return `<li><button class="elrow" data-course="${e.id}"><b>${esc(e.name)}</b> ${trk(e).map(k => `<span class="tag${track === k ? ' n' : ''}">${esc(D.tracks[k].name)}</span>`).join('')}${tt.length ? `<br><span class="small muted">${tt.map(t => `יום ${t.day} <span dir="ltr">${hm(t.from)}–${hm(t.to)}</span>`).join(' · ')}</span>` : ''}${cl.length ? `<br><span class="tag w">מתנגש עם ${esc(cl[0].with)}</span>` : ''}</button></li>`;
+  };
+  const offered = D.electives.filter(e => e.sems.includes(semL)).sort((a, b) => mine(b) - mine(a));
+  const summer = D.electives.filter(e => e.sems.includes('ק'));
+  const none = D.electives.filter(e => !e.sems.length);
+  let h = `<button class="close" data-close>סגירה</button><h2>קורס בחירה · ${SEMN[sem]}</h2>
+  <p>בסמסטר הזה התכנית מציבה ${n === 1 ? 'קורס בחירה אחד' : n + ' קורסי בחירה'}. התגיות מראות לאילו מסלולי התמחות הקורס שייך, ולחיצה על קורס מציגה את הסילבוס שלו.</p>
+  <h3>נפתחים בתשפ"ז, סמסטר ${semL}</h3><ul class="clean ellist">${offered.map(e => row(e, semL)).join('')}</ul>`;
+  if (summer.length) h += `<h3>בסמסטר קיץ</h3><ul class="clean ellist">${summer.map(e => row(e, 'ק')).join('')}</ul>`;
+  if (none.length) h += `<p class="small muted" style="margin-top:12px">לא נפתחים בתשפ"ז: ${none.map(e => esc(e.name)).join(', ')}.</p>`;
+  showPanel(h, false);
+}
+function openPM() {
+  const h = `<button class="close" data-close>סגירה</button><h2>קורסי ההתמחות בניהול מוצר</h2>
+  <p>במסלול ניהול מוצר שמונה קורסי התמחות (18 נ"ז) באים במקום ששת קורסי הבחירה. לחיצה על קורס מציגה את מה שידוע עליו.</p>
+  <ul class="clean ellist">${D.pm.map(p => `<li><button class="elrow" data-course="${p.id}"><b>${esc(p.name)}</b> <span class="small muted">${p.nz} נ"ז${p.sem ? ' · סמסטר ' + esc(p.sem) : ''}</span> ${p.syl ? '<span class="tag n">יש סילבוס</span>' : '<span class="tag">טרם פותח</span>'}</button></li>`).join('')}</ul>`;
   showPanel(h, false);
 }
 function showPanel(html, wide) {
@@ -430,6 +458,8 @@ function viewDirections() {
 function bind() {
   document.querySelectorAll('[data-track]').forEach(b => b.addEventListener('click', () => { track = b.dataset.track; try { localStorage.setItem('track', track) } catch (e) {} route(); }));
   document.querySelectorAll('[data-jump]').forEach(a => a.addEventListener('click', () => document.getElementById(a.dataset.jump).scrollIntoView({ behavior: 'smooth', block: 'start' })));
+  document.querySelectorAll('#app [data-elslot]').forEach(b => b.addEventListener('click', () => openElectives(b.dataset.elslot, +b.dataset.n)));
+  document.querySelectorAll('#app [data-pmslot]').forEach(b => b.addEventListener('click', openPM));
   document.querySelectorAll('[data-state]').forEach(b => b.addEventListener('click', () => { dirState = b.dataset.state; route(); }));
   document.querySelectorAll('#app [data-course]').forEach(b => b.addEventListener('click', () => openCourse(b.dataset.course)));
   document.querySelectorAll('[data-week]').forEach(b => b.addEventListener('click', () => openWeek(b.dataset.week, (location.hash || '') === '#directions')));
