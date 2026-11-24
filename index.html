@@ -104,6 +104,9 @@ aside.drawer.wide { width: min(1180px, 100%) }
 .kv { display: grid; grid-template-columns: 110px 1fr; gap: 4px 12px; font-size: .92rem }
 .kv dt { color: var(--muted) } .kv dd { margin: 0 }
 .comp { display: flex; height: 22px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line) }
+.comps { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; font-size: .88rem }
+.comps li { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap }
+.comps i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none }
 .comp div { display: flex; align-items: center; justify-content: center; font-size: .72rem; color: var(--panel); white-space: nowrap; overflow: hidden }
 .m-supervised { background: var(--accent) } .m-oral { background: var(--ok) } .m-unsupervised { background: var(--warn) } .m-unclear, .m-attendance, .m-inclass { background: var(--muted) }
 ul.clean { margin: 0; padding-inline-start: 18px } ul.clean li { margin: 2px 0 }
@@ -241,7 +244,7 @@ function openCourse(id) {
   let h = `<button class="close" data-close>סגירה</button><h2>${esc(c.name)}</h2>`;
   if (det) {
     h += `<dl class="kv"><dt>סילבוס</dt><dd>${esc(det.syllabus || '—')}${det.lecturer ? ' · ' + esc(det.lecturer) : ''}</dd>
-      <dt>הרכב הציון</dt><dd>${det.components.length ? `<div class="comp">${det.components.map(x => `<div class="m-${x.mode}" style="width:${x.weight}%" title="${esc(x.name)} ${x.weight}% · ${MODE[x.mode] || ''}">${x.weight >= 12 ? esc(x.name) + ' ' + x.weight + '%' : ''}</div>`).join('')}</div><div class="small muted">${det.components.map(x => `${esc(x.name)} ${x.weight}% (${MODE[x.mode] || x.mode})`).join(' · ')}</div>` : esc(det.assessment || 'לא מפורט')}</dd>
+      <dt>הרכב הציון</dt><dd>${det.components.length ? (det.components.some(x => x.weight) ? `<div class="comp">${det.components.filter(x => x.weight).map(x => `<div class="m-${x.mode}" style="width:${x.weight}%" title="${esc(x.name)} ${x.weight}%"></div>`).join('')}</div>` : '') + `<ul class="comps">${det.components.map(x => `<li><i class="m-${x.mode}"></i><span dir="auto">${esc(x.name)}</span> <b>${x.weight != null ? x.weight + '%' : 'משקל לא מפורט'}</b> <span class="muted">· ${MODE[x.mode] || x.mode}</span></li>`).join('')}</ul>` : esc(det.assessment || 'לא מפורט')}</dd>
       <dt>תנאי מעבר</dt><dd>${det.passExam ? 'ציון עובר במבחן הוא תנאי למעבר' : 'לא כתוב תנאי מעבר במבחן'}${det.defense ? ' · יש הגנה בעל פה' : ''}</dd>
       <dt>AI</dt><dd>${esc(AIP[det.ai] || det.ai)}${det.aiContent ? ' · AI הוא חלק מתוכן הקורס' : ''}</dd>
       ${tt.length ? `<dt>מועדים</dt><dd>${tt.map(t => `סמסטר ${t.sem === 'ק' ? 'קיץ' : t.sem}, יום ${t.day} <span dir="ltr">${hm(t.from)}–${hm(t.to)}</span>${t.who ? ' · ' + esc(t.who) : ''}${t.pm ? ' (ניהול מוצר)' : ''}`).join('<br>')}</dd>` : ''}
@@ -376,7 +379,8 @@ function viewDirections() {
     <tr><td>קורס בחירה חובה ממסלול ה-AI ומהסייבר; יחידת אתיקה</td><td>אין AI, אבטחה ואתיקה בחובה</td></tr>
     <tr><td>כללי שיבוץ: עד שני קורסים ביום</td><td>ימים עם שלושה קורסים</td></tr></table></div>` : ''}
   <div class="card"><h3>השבוע של הסטודנט לפני ואחרי</h3><p>הדוגמה שממחישה הכי טוב: שנה ב סמסטר ב. ביום א אלגוריתמים ונומריות לאורך כל הסמסטר, ובימים ב–ג שלושה בלוקים שמסתיימים בהאקתון.</p><p style="margin-top:8px"><button class="weekBtn" data-weekp="y2b">שנה ב סמסטר ב: היום, הצעה א והצעה ב ›</button> <button class="weekBtn" data-weekp="y1a">שנה א סמסטר א ›</button> <button class="weekBtn" data-weekp="y3b">שנה ג סמסטר ב ›</button></p></div>
-  <div class="card"><h3>מה מפסידים בהצעה ב</h3><p>פחות בחירה (15 נ"ז מול 18), פרויקט גמר קטן יותר (6 מול 8), ארבעה קורסים מצטמצמים בנקודה. נדרשים מרצים לשני קורסי AI, שעות להגנות ורישיונות לסוכן קוד. אין מחקר שמראה שמבנה כזה מוציא בוגרים טובים יותר, ולכן מוצע להתחיל בפיילוט.</p></div>
+  <div class="card"><h3>מה מפסידים בהצעה ב</h3><p>פחות בחירה (15 נ"ז מול 18), פרויקט גמר קטן יותר (6 מול 8), ארבעה קורסים מצטמצמים בנקודה. נדרשים מרצים לשני קורסי AI, שעות להגנות ורישיונות לסוכן קוד.</p></div>
+  <div class="card"><h3>על מה השינויים נשענים</h3><p>כל אחד מהרכיבים בכיוונים האלה נבדק במחקר, והתוצאות ברורות:</p><ul class="clean small" style="margin-top:6px"><li><b>למידה פעילה במקום הרצאה:</b> מטא-אנליזה של 225 מחקרים בקורסי מדעים, הנדסה ומתמטיקה – שיעור הכישלון ירד מ-34% ל-22%, והציונים עלו בכחצי סטיית תקן. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4060654/" target="_blank" rel="noopener">Freeman ועמיתיו, PNAS 2014</a></li><li><b>למידה מבוססת פרויקטים ובעיות:</b> זכירה טובה יותר לטווח ארוך ופיתוח מיומנויות, על פני שמונה מטא-אנליזות (רובן ברפואה). <a href="https://docs.lib.purdue.edu/ijpbl/vol3/iss1/4/" target="_blank" rel="noopener">Strobel ו-van Barneveld 2009</a></li><li><b>ריווח ושזירה:</b> חומר שחוזרים אליו במרווחים ובתרגול מעורב נזכר הרבה יותר זמן. <a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener">Cepeda ועמיתיו 2006</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/31556629/" target="_blank" rel="noopener">Brunmair ו-Richter 2019</a></li><li><b>בלוקים:</b> אחרי המעבר לבלוקים עלה שיעור המעבר בשנה א מ-74% ל-87% תוך שנתיים, בעיקר אצל סטודנטים מרקע חלש. <a href="https://www.vu.edu.au/mitchell-institute/tertiary-education/inside-the-black-box-of-the-vu-block-model" target="_blank" rel="noopener">Victoria University</a></li></ul><p style="margin-top:8px">מה שעוד לא נבדק הוא השילוב של כל הרכיבים בתכנית אחת. לכן מוצע פיילוט בשנתון אחד, שימדוד את זה אצלנו.</p></div>
   </section>`;
 }
 
