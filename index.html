@@ -253,7 +253,8 @@ const MODE = { supervised: 'בפיקוח', oral: 'בעל פה', unsupervised: '�
 const AIP = { none: 'הסילבוס אינו מתייחס לכלי AI', require: 'הסילבוס מחייב שימוש ב-AI', allow_with_conditions: 'מותר בתנאים', allow: 'מותר', forbid: 'אסור' };
 function openCourse(id) {
   const det = D.details[id], all = [...D.today.flatMap(s => s.courses), ...D.B.flatMap(s => s.courses), ...D.electives, ...D.pm];
-  const c = all.find(x => x.id === id) || { name: id };
+  const XN = { swhouse: 'בית תוכנה – קליניקה ספיר לחדשנות', gaming: 'מעבדת גיימינג', career: 'פיתוח מיומנויות קריירה' };
+  const c = all.find(x => x.id === id) || { name: XN[id] || id };
   const b = D.B.flatMap(s => s.courses).find(x => x.id === id);
   const tt = (D.times[id] || []).filter(t => !t.prac);
   let h = `<button class="close" data-close>סגירה</button><h2>${esc(c.name)}</h2>`;
@@ -269,6 +270,8 @@ function openCourse(id) {
     if (det.topics.length) h += `<div><h3>נושאים</h3><ul class="clean">${det.topics.map(o => `<li>${esc(o)}</li>`).join('')}</ul></div>`;
   } else h += `<p class="muted">${c.note ? esc(c.note) : 'לקורס הזה אין סילבוס במאגר.'}</p>`;
   if (b && b.chg) h += `<div class="say"><b>בהצעה ב</b>${esc(b.chg)}</div>`;
+  if (id === 'proj1' || id === 'proj2') h += `<div><h3>חלופות לפרויקט הגמר</h3><p class="small muted">סטודנט יכול לעשות במקום פרויקט הגמר את אחת מהחלופות האלה.</p><ul class="clean ellist">${['swhouse', 'gaming'].map(x => `<li><button class="elrow" data-course="${x}"><b>${esc(XN[x])}</b> <span class="small muted">הסילבוס ›</span></button></li>`).join('')}</ul></div>`;
+  if (id === 'swhouse' || id === 'gaming') h += `<p class="small"><button class="elrow" data-course="proj1">חלופה לפרויקט גמר א וב · <b>לפרויקט הגמר ›</b></button></p>`;
   showPanel(h, false);
 }
 function openElectives(sem, n) {
