@@ -82,6 +82,11 @@ section.view { display: grid; gap: 18px }
 .card p.fix { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); color: var(--ink); font-size: .88rem } .card p.fix a { color: var(--accent); font-weight: 700; text-decoration: none }
 .card p.src, p.src { margin-top: 8px; font-size: .8rem } .src a, table.t a { color: var(--accent) }
 .group h3 { margin-bottom: 8px }
+.theme { margin-top: 8px } .chain { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1.5fr); gap: 16px; margin-top: 10px; align-items: start }
+.chain h4 { margin: 0 0 8px; font-size: .85rem; color: var(--muted, #8a94a6); letter-spacing: .02em } .chain .cards { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) }
+.wi { padding: 8px 10px; margin-bottom: 8px; border-inline-start: 3px solid var(--accent); font-size: .92rem; line-height: 1.5 } .wi .src { display: block; margin-top: 3px; font-size: .8rem }
+.qbox { margin-top: 12px; padding: 12px 16px; border: 1px solid var(--accent); border-radius: 12px } .qbox > span { font-size: .8rem; font-weight: 700; color: var(--accent) } .qbox h3 { margin: 2px 0 4px } .qbox p { margin: 0; font-size: .92rem }
+@media (max-width: 760px) { .chain { grid-template-columns: minmax(0,1fr) } }
 h2.part { margin-top: 28px; padding-top: 14px; border-top: 2px solid var(--line); scroll-margin-top: 70px } h2.part:first-of-type { border-top: 0; margin-top: 4px }
 nav.jump { display: flex; flex-wrap: wrap; gap: 8px } nav.jump a { cursor: pointer; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--accent); font-weight: 700; font-size: .9rem }
 .q { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 6px }
@@ -307,69 +312,76 @@ function openWeek(sem, withProposals) {
   showPanel(h, true);
 }
 
-/* ---------- gaps ---------- */
-function viewGaps() {
-  const card = (num, w, t, p, src, fix) => `<div class="card"><div class="num${w ? ' w' : ''}">${num}</div><h3>${t}</h3><p>${p}</p>${src ? `<p class="src">${src}</p>` : ''}${fix ? `<p class="fix"><a href="#directions">כיוון אפשרי ›</a> ${fix}</p>` : ''}</div>`;
-  return `<section class="view">
-  <p class="lead">מה עולה מ-56 סילבוסים ומערכת השעות של תשפ"ז. בכל כרטיס: הממצא, מה אומר עליו המחקר, וכיוון אפשרי לדיון. הפרטים בכל קורס זמינים במפה.</p>
-  <div class="group"><h3>תוכן</h3><div class="cards">
-    ${card('0', 1, 'קורסי חובה ב-AI, באבטחה ובאתיקה', 'שלושת התחומים נמצאים רק בבחירה. הקווים המנחים של המל"ג מ-2016 ממליצים לכלול את שלושתם.', 'המל"ג: "יש לכלול" אבטחת מערכות תוכנה ולמידה ממוחשבת, ו"ראוי למסד" היבטים אתיים. <a href="https://che.org.il/wp-content/uploads/decisions/52637/%D7%A7%D7%95%D7%95%D7%99%D7%9D-%D7%9E%D7%A0%D7%97%D7%99%D7%9D-%D7%95%D7%94%D7%92%D7%93%D7%A8%D7%95%D7%AA-%D7%9C%D7%AA%D7%9B%D7%A0%D7%99%D7%95%D7%AA-%D7%9C%D7%99%D7%9E%D7%95%D7%93%D7%99%D7%9D-%D7%91%D7%AA%D7%97%D7%95%D7%9E%D7%99%D7%9D-%D7%94%D7%A0%D7%93%D7%A1%D7%AA-%D7%9E%D7%97%D7%A9%D7%91%D7%99%D7%9D-%D7%94%D7%A0%D7%93%D7%A1%D7%AA-%D7%97%D7%A9%D7%9E%D7%9C.pdf" target="_blank" rel="noopener">קווים מנחים, 2016</a>', 'הצעה א: קורס בחירה חובה ממסלול ה-AI ומהסייבר, ויחידת אתיקה. הצעה ב: AI, אבטחה ואתיקה כקורסי חובה.')}
-    ${card('3', 0, 'כפילויות בין קורסים עוקבים', 'תכנות מונחה עצמים בשלושה קורסים, גזירה ואינטגרציה בשלושה, הוכחה באינדוקציה בשלושה.', '', 'תיאום בין המרצים: מי מלמד מה ובאיזו רמה, כך שכל קורס בונה על הקודם.')}
-  </div></div>
-  <div class="group"><h3>הערכה, בעידן שבו לכל סטודנט יש סוכן קוד</h3><div class="cards">
-    ${card('25/27', 0, 'קורסי חובה שבהם 70% ומעלה מהציון במבחן או בבוחן', 'המבחן בודק את הסטודנט עצמו. פרויקט הוא חלק מהציון רק ב-3 קורסי חובה, והצגה בעל פה רק בשנה ג.', 'קרפתי: <q dir="ltr">If I can\'t build it, I don\'t understand it.</q> <a href="https://www.dwarkesh.com/p/andrej-karpathy" target="_blank" rel="noopener">ראיון, 10.2025</a>', 'לשמור את המבחן בלי AI כתנאי מעבר, ולהוסיף פרויקט עם הגנה בעל פה בכל קורס.')}
-    ${card('19', 1, 'קורסים שבהם עבודה לא מפוקחת נספרת בציון בלי בדיקה', 'ב-21 קורסי חובה לתרגילי הבית יש משקל בציון. ב-19 מהם לא כתוב שהעבודה נבדקת בעל פה.', 'ניסוי מבוקר בכ-1,000 תלמידים: תרגול עם ChatGPT בלי מגבלות שיפר את ציוני התרגול ב-48%, אבל הוריד את ציון המבחן ב-17%. <a href="https://ideas.repec.org/a/nas/journl/v122y2025pe2422633122.html" target="_blank" rel="noopener">Bastani ועמיתיו, PNAS 2025</a>', 'בוחן כניסה בכיתה על תרגילי ההכנה, כמו במערכות ספרתיות: מי שהעתיק נכשל בבוחן.')}
-    ${card('1/56', 1, 'סילבוסים עם כלל מפורש לשימוש ב-AI', 'כלי AI מופיעים בחמישה קורסים, כל אחד כהתנסות נפרדת, בלי רצף.', 'באותו ניסוי, מלווה AI שמכוון ואינו נותן את הפתרון ביטל את רוב הנזק ללמידה. <a href="https://ideas.repec.org/a/nas/journl/v122y2025pe2422633122.html" target="_blank" rel="noopener">Bastani ועמיתיו, PNAS 2025</a>', 'כל סילבוס מצהיר מה תפקיד ה-AI; בקורסי היסוד מלווה שאינו נותן את הפתרון.')}
-  </div></div>
-  <div class="group"><h3>מערכת השעות והמסלולים</h3><div class="cards">
-    ${card('5/6', 1, 'סמסטרים עם יום של שלושה קורסים', 'סטודנט לומד 3–6 קורסי חובה במקביל, ובשנה א עד 6.5 שעות "חלון" בשבוע. הלימודים בימים א–ג, וימים ד–ה פנויים לסטודנטים שעובדים.', 'כל מעבר בין נושאים משאיר "שארית קשב" שפוגעת במשימה הבאה. <a href="https://www.uwb.edu/business/faculty/sophie-leroy/attention-residue" target="_blank" rel="noopener">Leroy</a> · עבודה על שני נושאים במקביל מבזבזת כ-20% מהזמן, ועל שלושה כ-40%. <a href="https://www.scrum.org/node/47056" target="_blank" rel="noopener">Weinberg</a>', 'עד שני קורסים ביום; יסודות לאורך הסמסטר ונושאים יישומיים בבלוקים.')}
-    ${card('0', 1, 'קורסי מסלול AI ודאטה בשנה ג סמסטר א', 'בסמסטר הזה התכנית מציבה קורס בחירה אחד, ואף קורס של מסלולי הבינה המלאכותית ומדעי הנתונים אינו נפתח בו.', 'מסלולי ההתמחות ורשימות הקורסים שלהם: <a href="https://www.sapir.ac.il/ba/computer_science" target="_blank" rel="noopener">דף המחלקה באתר המכללה</a>', 'לקבוע כמה קורסי מסלול נדרשים, ולתאם את מערכת הבחירה כך שהם נפתחים.')}
-    ${card('5', 0, 'קורסי ניהול מוצר שטרם פותחו', 'לפי ראש המחלקה הוגדרו רק שמות הקורסים.', '', 'לבנות את הסילבוסים עם המרצים הראשונים, לפי אותם עקרונות.')}
-  </div></div>
-  </section>`;
-}
-
-/* ---------- status: what changed, our gaps, questions ---------- */
+/* ---------- status: five themes, each from what changed to what we found to the question ---------- */
+const LK = (u, t) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`;
+const U = {
+  che16: 'https://che.org.il/wp-content/uploads/decisions/52637/%D7%A7%D7%95%D7%95%D7%99%D7%9D-%D7%9E%D7%A0%D7%97%D7%99%D7%9D-%D7%95%D7%94%D7%92%D7%93%D7%A8%D7%95%D7%AA-%D7%9C%D7%AA%D7%9B%D7%A0%D7%99%D7%95%D7%AA-%D7%9C%D7%99%D7%9E%D7%95%D7%93%D7%99%D7%9D-%D7%91%D7%AA%D7%97%D7%95%D7%9E%D7%99%D7%9D-%D7%94%D7%A0%D7%93%D7%A1%D7%AA-%D7%9E%D7%97%D7%A9%D7%91%D7%99%D7%9D-%D7%94%D7%A0%D7%93%D7%A1%D7%AA-%D7%97%D7%A9%D7%9E%D7%9C.pdf',
+  che26: 'https://www.themarker.com/news/education/2026-06-24/ty-article/0000019e-f9ba-d514-a9bf-f9fbace90000',
+  telhai: 'https://www.telhai.ac.il/sites/default/files/2026-06/Artificial%20Intelligence%20Sytstems%20Engineering.pdf',
+  colman: 'https://www.colman.ac.il/academics/ba/computer-science/',
+  aau: 'https://www.en.aau.dk/education/problem-based-learning',
+  karp: 'https://www.dwarkesh.com/p/andrej-karpathy', karpyc: 'https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again',
+  ng: 'https://www.deeplearning.ai/the-batch/issue-317', ngbi: 'https://www.businessinsider.com/andrew-ng-says-everyone-should-learn-to-vibe-code-ai-2025-11',
+  hinton: 'https://www.businessinsider.com/godfather-ai-geoffrey-hinton-cs-degrees-valuable-learn-to-code-2025-12',
+  huang: 'https://fortune.com/2026/04/29/nvidia-ceo-jensen-huang-engineering-path-to-success-ai-era-gen-z-advice-ieee-medal-of-honor-winner/',
+  oecd: 'https://www.oecd.org/en/publications/oecd-digital-education-outlook-2026_062a7394-en.html',
+  chir: 'https://cshe.berkeley.edu/publications/artificial-intelligence-and-grade-inflation-cshe-higher-education-working-paper-series',
+  bast: 'https://ideas.repec.org/a/nas/journl/v122y2025pe2422633122.html',
+  leroy: 'https://www.uwb.edu/business/faculty/sophie-leroy/attention-residue', wein: 'https://www.scrum.org/node/47056',
+  cep: 'https://doi.org/10.1037/0033-2909.132.3.354', brun: 'https://pubmed.ncbi.nlm.nih.gov/31556629/',
+  vu: 'https://www.vu.edu.au/mitchell-institute/tertiary-education/inside-the-black-box-of-the-vu-block-model',
+  site: 'https://www.sapir.ac.il/ba/computer_science'
+};
 function viewStatus() {
-  const inner = s => s.replace(/^\s*<section class="view">/, '').replace(/<\/section>\s*$/, '');
-  const sec = (id, t, body) => `<h2 id="${id}" class="part">${t}</h2>${inner(body)}`;
+  const card = (num, w, t, p, src) => `<div class="card"><div class="num${w ? ' w' : ''}">${num}</div><h3>${t}</h3><p>${p}</p>${src ? `<p class="src">${src}</p>` : ''}</div>`;
+  const wi = (t, p, src) => `<div class="wi"><b>${t}</b> ${p}<span class="src">${src}</span></div>`;
+  const theme = (id, title, world, ours, q, why) => `<div class="theme" id="${id}"><h2 class="part">${title}</h2>
+  <div class="chain"><div class="col"><h4>מה השתנה</h4>${world}</div><div class="col"><h4>מה מצאנו אצלנו</h4><div class="cards">${ours}</div></div></div>
+  <div class="qbox"><span>השאלה לוועדה</span><h3>${q}</h3><p>${why}</p></div></div>`;
+  const T = [['t1', '1. מה בוגר צריך לדעת'], ['t2', '2. איך נדע שהסטודנט עצמו יודע'], ['t3', '3. ללמוד דרך בנייה'], ['t4', '4. עומס ומבנה השבוע'], ['t5', '5. המסלולים ובסיס התכנית']];
   return `<section class="view">
-  <nav class="jump"><a data-jump="s-world">מה השתנה ב-2026</a><a data-jump="s-gaps">הפערים אצלנו</a><a data-jump="s-q">שאלות לוועדה</a></nav>
-  ${sec('s-world', 'מה השתנה ב-2026', viewAI())}
-  ${sec('s-gaps', 'הפערים אצלנו', viewGaps())}
-  ${sec('s-q', 'שאלות לוועדה', viewQuestions())}
-  </section>`;
-}
-/* ---------- the world ---------- */
-function viewAI() {
-  return `<section class="view">
-  <p class="lead">מה אומרים אנשי התחום ומה עושים מוסדות אחרים. הדברים נבדקו מול המקור ומובאים כאן בקיצור; הקישורים למי שרוצה לקרוא.</p>
-  <div class="cards">
-    <div class="card"><h3>אנדריי קרפתי</h3><p>מי שלא יכול לבנות משהו, לא מבין אותו. ומפתח צריך לשלוט היום בשלוש צורות תכנות: קוד, רשתות נוירונים ופרומפטים. ה-AI מייצר, והאדם מאמת.</p><p class="src">מקור: <a href="https://www.dwarkesh.com/p/andrej-karpathy" target="_blank" rel="noopener">ראיון לדווארקש פאטל, 10.2025</a> · <a href="https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again" target="_blank" rel="noopener">הרצאה ב-YC, 6.2025</a> · <a href="https://singjupost.com/?p=54818" target="_blank" rel="noopener">תמליל ההרצאה (לא רשמי)</a></p></div>
-    <div class="card"><h3>אנדרו אנג</h3><p>היסודות עדיין חשובים: בלי להבין איך מחשב עובד אי אפשר להגיע רחוק רק בעזרת AI. ובאותה נשימה: לא לכתוב יותר קוד בדרך הישנה.</p><p class="src">מקור: <a href="https://www.deeplearning.ai/the-batch/issue-317" target="_blank" rel="noopener">The Batch, 9.2025</a> · <a href="https://www.businessinsider.com/andrew-ng-says-everyone-should-learn-to-vibe-code-ai-2025-11" target="_blank" rel="noopener">Business Insider, 11.2025</a></p></div>
-    <div class="card"><h3>ג'פרי הינטון</h3><p>מתכנת בינוני בלבד לא יהיה מקצוע עוד הרבה זמן, כי AI עושה את זה.</p><p class="src">מקור: <a href="https://www.businessinsider.com/godfather-ai-geoffrey-hinton-cs-degrees-valuable-learn-to-code-2025-12" target="_blank" rel="noopener">Business Insider, 12.2025</a></p></div>
-    <div class="card"><h3>ג'נסן הואנג</h3><p>הנדסה מלמדת לחשוב מעקרונות יסוד, מתמטיקה ופיזיקה.</p><p class="src">מקור: <a href="https://fortune.com/2026/04/29/nvidia-ceo-jensen-huang-engineering-path-to-success-ai-era-gen-z-advice-ieee-medal-of-honor-winner/" target="_blank" rel="noopener">Fortune, 4.2026</a></p></div>
-  </div>
-  <div class="tw"><table class="t"><tr><th>מוסד</th><th>מה הם עושים</th></tr>
-    <tr><td><b><a href="https://www.telhai.ac.il/sites/default/files/2026-06/Artificial%20Intelligence%20Sytstems%20Engineering.pdf" target="_blank" rel="noopener">תל-חי</a></b></td><td>תואר חדש בהנדסת מערכות בינה מלאכותית: AI מהסמסטר הראשון, פרויקטים בכל שנה, קורס חובה באתיקה. בלי חישוביות וסיבוכיות בחובה.</td></tr>
-    <tr><td><b><a href="https://www.colman.ac.il/academics/ba/computer-science/" target="_blank" rel="noopener">המכללה למינהל</a></b></td><td>AI בתוך התואר במדעי המחשב: סוכני AI כחלק מסביבת העבודה, וקורסים כמו תכנות מונחה AI.</td></tr>
-    <tr><td><b><a href="https://www.themarker.com/news/education/2026-06-24/ty-article/0000019e-f9ba-d514-a9bf-f9fbace90000" target="_blank" rel="noopener">המל"ג, 2026</a></b></td><td>אישרה מסלולי תואר ראשון ב-AI בשבעה מוסדות, כחלופה למדעי המחשב. מספר הסטודנטים למדעי המחשב ירד ב-14% מהשיא של 2023.</td></tr>
-    <tr><td><b><a href="https://www.en.aau.dk/education/problem-based-learning" target="_blank" rel="noopener">אלבורג, דנמרק</a></b></td><td>מאז 1974: בכל סמסטר כחצי מהזמן הולך לפרויקט צוותי, וחצי לקורסים שתומכים בו. גם במדעי המחשב.</td></tr>
-  </table></div>
-  <div class="card"><h3>AI מחוץ לכיתה: הציונים עולים, הלמידה לא</h3><p>סטודנטים שעובדים עם AI כללי מגישים עבודות טובות יותר, אבל במבחן בלי הכלי היתרון נעלם ולפעמים מתהפך. בקורסים שבהם AI יכול לעשות את העבודה, כתיבה ותכנות, שיעור ציוני ה-A עלה ב-30% מאז ChatGPT, ויותר ככל שלתרגילי הבית משקל גבוה בציון. AI שנבנה למטרה פדגוגית, שמכוון ואינו פותר, דווקא משפר את הלמידה.</p><p class="src">מקור: <a href="https://www.oecd.org/en/publications/oecd-digital-education-outlook-2026_062a7394-en.html" target="_blank" rel="noopener">OECD Digital Education Outlook 2026</a> · <a href="https://cshe.berkeley.edu/publications/artificial-intelligence-and-grade-inflation-cshe-higher-education-working-paper-series" target="_blank" rel="noopener">Chirikov, Berkeley CSHE, 5.2026</a> · <a href="https://ideas.repec.org/a/nas/journl/v122y2025pe2422633122.html" target="_blank" rel="noopener">Bastani ועמיתיו, PNAS 2025</a></p></div>
-  <div class="card"><h3>ממחקרי הלמידה</h3><p>בתוך יום, כל מעבר בין נושאים עולה בריכוז. לאורך שבועות, חזרה במרווחים ותרגול מעורב משפרים את הזכירה. מכאן: מעט נושאים ביום, וחזרה לנושאים לאורך הסמסטר.</p><p class="src">מקור: <a href="https://www.uwb.edu/business/faculty/sophie-leroy/attention-residue" target="_blank" rel="noopener">Leroy, "שארית קשב"</a> · <a href="https://www.scrum.org/node/47056" target="_blank" rel="noopener">Weinberg, מעבר בין פרויקטים</a> · <a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener">Cepeda ועמיתיו 2006, ריווח</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/31556629/" target="_blank" rel="noopener">Brunmair ו-Richter 2019, שזירה</a> · <a href="https://www.vu.edu.au/mitchell-institute/tertiary-education/inside-the-black-box-of-the-vu-block-model" target="_blank" rel="noopener">Victoria University, בלוקים</a></p></div>
-  </section>`;
-}
-/* ---------- questions ---------- */
-function viewQuestions() {
-  const q = (t, why, a, b) => `<div class="q"><h3>${t}</h3><p class="why">${why}</p><div class="say small"><b>שתי דרכים לחשוב על זה</b>${a}<br>${b}</div></div>`;
-  return `<section class="view">
-  <p class="lead">לא מבקשים החלטה היום. אלה השאלות שהמצב הקיים מעלה, ושכדאי לחשוב עליהן עד הישיבה הבאה.</p>
-  ${q('1. האם בוגר שלנו צריך ללמוד AI בחובה?', 'היום אפשר לסיים את התואר בלי אף קורס בלמידת מכונה, באבטחה או באתיקה.', 'דרך הבחירה: לחייב קורס אחד ממסלול ה-AI ואחד מהסייבר.', 'כקורסי חובה חדשים, על חשבון נקודות מתחומים אחרים.')}
-  ${q('2. איך נדע שהסטודנט עצמו יודע, כשיש לו סוכן קוד?', 'תרגילי בית נספרים בציון בלי בדיקה ב-19 קורסים, וכמעט אין הגנה בעל פה.', 'מבחן או בוחן בלי AI כתנאי מעבר בכל קורס, ובוחן כניסה על תרגילי ההכנה.', 'הגנה בעל פה על כל פרויקט, ותיעוד השיחה עם ה-AI שמוגש עם העבודה.')}
-  ${q('3. האם כל קורס צריך פרויקט, ומי הלקוח?', 'פרויקט נכנס לציון ב-3 קורסי חובה בלבד. בוגר יוצא עם מעט עבודות שמישהו השתמש בהן.', 'פרויקט בכל קורס, בשלוש רמות: לקוח, בנייה, חישובי קטן.', 'קורס עוגן אחד בכל סמסטר שבו הסטודנט מוצא לקוח אמיתי.')}
-  ${q('4. מה נעשה עם העומס ומבנה השבוע?', 'בחמישה מששת הסמסטרים יש ימים עם שלושה קורסים, ובשנה ג שבעה-שמונה קורסים במקביל.', 'כללי שיבוץ: עד שני קורסים ביום, בלי חלונות ארוכים.', 'יסודות לאורך הסמסטר, ונושאים יישומיים בבלוקים של חודש שמסתיימים בהאקתון.')}
-  ${q('5. האם המסלולים אמיתיים?', 'בשנה ג סמסטר א לא נפתח אף קורס של מסלולי AI ודאטה, ובאתר לא כתוב כמה קורסי מסלול נדרשים.', 'לתאם את מערכת הבחירה עם המסלולים.', 'לקבוע כמה קורסי מסלול נדרשים, ולהבטיח שהם נפתחים.')}
+  <p class="lead">לא מבקשים החלטה היום. חמישה נושאים, ובכל אחד: מה השתנה בעולם, מה מצאנו ב-56 סילבוסים ובמערכת השעות של תשפ"ז, והשאלה שזה מעלה לוועדה. הפרטים בכל קורס זמינים במפה.</p>
+  <nav class="jump">${T.map(([id, t]) => `<a data-jump="${id}">${t}</a>`).join('')}</nav>
+  ${theme('t1', '1. מה בוגר צריך לדעת',
+    wi('ג\'פרי הינטון:', 'מתכנת בינוני בלבד לא יהיה מקצוע עוד הרבה זמן, כי AI עושה את זה.', LK(U.hinton, 'Business Insider, 12.2025'))
+    + wi('ג\'נסן הואנג:', 'הנדסה מלמדת לחשוב מעקרונות יסוד, מתמטיקה ופיזיקה.', LK(U.huang, 'Fortune, 4.2026'))
+    + wi('המל"ג, 2026:', 'אישרה מסלולי תואר ראשון ב-AI בשבעה מוסדות, כחלופה למדעי המחשב.', LK(U.che26, 'TheMarker, 6.2026'))
+    + wi('תל-חי:', 'תואר חדש בהנדסת מערכות בינה מלאכותית, עם AI מהסמסטר הראשון וקורס חובה באתיקה.', LK(U.telhai, 'תכנית הלימודים'))
+    + wi('המכללה למינהל:', 'סוכני AI כחלק מסביבת העבודה בתואר במדעי המחשב, וקורסים כמו תכנות מונחה AI.', LK(U.colman, 'דף התכנית'))
+    + wi('המל"ג כבר ב-2016:', '"יש לכלול" אבטחת מערכות תוכנה ולמידה ממוחשבת, ו"ראוי למסד" היבטים אתיים.', LK(U.che16, 'קווים מנחים, 2016')),
+    card('0', 1, 'קורסי חובה ב-AI, באבטחה ובאתיקה', 'שלושת התחומים נמצאים רק בבחירה. אפשר לסיים את התואר בלי אף קורס בלמידת מכונה, באבטחה או באתיקה.'),
+    'האם בוגר שלנו צריך ללמוד AI, אבטחה ואתיקה בחובה?', 'ואם כן, על חשבון מה: נקודות בחירה, או קורסים קיימים?')}
+  ${theme('t2', '2. איך נדע שהסטודנט עצמו יודע',
+    wi('OECD, 2026:', 'סטודנטים שעובדים עם AI כללי מגישים עבודות טובות יותר, אבל במבחן בלי הכלי היתרון נעלם ולפעמים מתהפך.', LK(U.oecd, 'Digital Education Outlook 2026'))
+    + wi('Berkeley, 2026:', 'בקורסים שבהם AI יכול לעשות את העבודה, כתיבה ותכנות, שיעור ציוני ה-A עלה ב-30% מאז ChatGPT, ויותר ככל שלתרגילי הבית משקל גבוה בציון.', LK(U.chir, 'Chirikov, 5.2026'))
+    + wi('ניסוי מבוקר, כ-1,000 תלמידים:', 'תרגול עם ChatGPT בלי מגבלות שיפר את ציוני התרגול ב-48% והוריד את ציון המבחן ב-17%. מלווה AI שמכוון ואינו נותן את הפתרון ביטל את רוב הנזק.', LK(U.bast, 'Bastani ועמיתיו, PNAS 2025')),
+    card('19', 1, 'קורסים שבהם עבודה לא מפוקחת נספרת בציון בלי בדיקה', 'ב-21 קורסי חובה לתרגילי הבית יש משקל בציון. ב-19 מהם לא כתוב שהעבודה נבדקת בעל פה.')
+    + card('1/56', 1, 'סילבוסים עם כלל מפורש לשימוש ב-AI', 'כלי AI מופיעים בחמישה קורסים, כל אחד כהתנסות נפרדת, בלי רצף.')
+    + card('25/27', 0, 'קורסי חובה שבהם 70% ומעלה מהציון במבחן או בבוחן', 'המבחן בודק את הסטודנט עצמו, וזה כבר קיים כמעט בכל קורס.'),
+    'איך נדע שהסטודנט עצמו יודע, כשיש לו סוכן קוד?', 'הציון על עבודה לא מפוקחת כבר לא אומר מה הסטודנט יודע. והסילבוסים כמעט לא אומרים לסטודנט מה מותר.')}
+  ${theme('t3', '3. ללמוד דרך בנייה',
+    wi('אנדריי קרפתי:', '<q dir="ltr">If I can\'t build it, I don\'t understand it.</q> ה-AI מייצר, והאדם מאמת.', `${LK(U.karp, 'ראיון, 10.2025')} · ${LK(U.karpyc, 'הרצאה ב-YC, 6.2025')}`)
+    + wi('אנדרו אנג:', 'היסודות עדיין חשובים, ובאותה נשימה: לא לכתוב יותר קוד בדרך הישנה.', `${LK(U.ng, 'The Batch, 9.2025')} · ${LK(U.ngbi, 'Business Insider, 11.2025')}`)
+    + wi('אלבורג, דנמרק:', 'מאז 1974, בכל סמסטר כחצי מהזמן הולך לפרויקט צוותי וחצי לקורסים שתומכים בו. גם במדעי המחשב.', LK(U.aau, 'Aalborg PBL'))
+    + wi('תל-חי:', 'פרויקט בכל שנה בתואר החדש.', LK(U.telhai, 'תכנית הלימודים')),
+    card('3', 1, 'קורסי חובה שבהם פרויקט נכנס לציון', 'הצגה בעל פה רק בשנה ג. בוגר יוצא עם מעט עבודות שמישהו השתמש בהן.'),
+    'האם כל קורס צריך פרויקט, ומי הלקוח?', 'היום הסטודנט בונה מערכת שלמה בעיקר בפרויקט הגמר.')}
+  ${theme('t4', '4. עומס ומבנה השבוע',
+    wi('שארית קשב:', 'כל מעבר בין נושאים משאיר שארית שפוגעת במשימה הבאה.', LK(U.leroy, 'Leroy'))
+    + wi('מעבר בין משימות:', 'עבודה על שני נושאים במקביל מבזבזת כ-20% מהזמן, ועל שלושה כ-40%.', LK(U.wein, 'Weinberg'))
+    + wi('ריווח ושזירה:', 'חזרה לנושא במרווחים ותרגול מעורב משפרים את הזכירה לאורך זמן.', `${LK(U.cep, 'Cepeda ועמיתיו 2006')} · ${LK(U.brun, 'Brunmair ו-Richter 2019')}`)
+    + wi('בלוקים:', 'אחרי המעבר ללימוד בבלוקים עלה שיעור המעבר בשנה א מ-74% ל-87%.', LK(U.vu, 'Victoria University')),
+    card('5/6', 1, 'סמסטרים עם יום של שלושה קורסים', 'סטודנט לומד 3–6 קורסי חובה במקביל, ובשנה א עד 6.5 שעות "חלון" בשבוע. הלימודים בימים א–ג, וימים ד–ה פנויים לסטודנטים שעובדים.'),
+    'מה נעשה עם העומס ומבנה השבוע?', 'בחמישה מששת הסמסטרים יש ימים עם שלושה קורסים, ובשנה ג שבעה-שמונה קורסים במקביל.')}
+  ${theme('t5', '5. המסלולים ובסיס התכנית',
+    wi('ירידה בביקוש:', 'מספר הסטודנטים למדעי המחשב בישראל ירד ב-14% מהשיא של 2023, ותארי ה-AI החדשים מתחרים על אותם סטודנטים.', LK(U.che26, 'TheMarker, 6.2026'))
+    + wi('מסלולי ההתמחות שלנו:', 'מוצגים לסטודנטים באתר המכללה כחלק מהתואר.', LK(U.site, 'דף המחלקה')),
+    card('0', 1, 'קורסי מסלול AI ודאטה בשנה ג סמסטר א', 'בסמסטר הזה התכנית מציבה קורס בחירה אחד, ואף קורס של מסלולי הבינה המלאכותית ומדעי הנתונים אינו נפתח בו.')
+    + card('5', 0, 'קורסי ניהול מוצר שטרם פותחו', 'לפי ראש המחלקה הוגדרו רק שמות הקורסים.')
+    + card('3', 0, 'כפילויות בין קורסים עוקבים', 'תכנות מונחה עצמים בשלושה קורסים, גזירה ואינטגרציה בשלושה, הוכחה באינדוקציה בשלושה.')
++ `
+`,
+    'האם המסלולים אמיתיים?', 'בשנה ג סמסטר א לא נפתח אף קורס של מסלולי AI ודאטה, ובאתר לא כתוב כמה קורסי מסלול נדרשים.')}
   <div class="card"><h3>צעד הבא שאפשר להסכים עליו כבר היום</h3><p>צוות עבודה קטן לניסוח כיוונים לישיבה הבאה, ושניים-שלושה מרצים שמוכנים לנסות בסמסטר הבא בוחן כניסה או הגנה בעל פה בקורס שלהם.</p></div>
   <button class="reveal" data-reveal>כיוונים לדיון ›</button>
   </section>`;
@@ -389,6 +401,13 @@ function viewDirections() {
     ${pr('AI מלווה כל סטודנט בכל קורס', 'בקורסי היסוד מדריך שאינו נותן את הפתרון, במתקדמים כלי עבודה. המרצה מקבל סיכום שבועי ברמת הכיתה.')}
     ${pr('שלושה רכיבים בכל קורס', 'פרויקט, עבודה שוטפת, ומבחן או בוחן בלי AI כתנאי מעבר. לפחות חצי מהציון בפיקוח או בעל פה.')}
   </div>
+  <div class="card"><h3>מהשאלות לכיוונים: שתי דרכים לחשוב על כל שאלה</h3><div class="tw"><table class="t"><tr><th>נושא</th><th>דרך אחת</th><th>דרך אחרת</th></tr>
+    <tr><td><a href="#gaps">1. מה בוגר צריך לדעת</a></td><td>דרך הבחירה: לחייב קורס אחד ממסלול ה-AI ואחד מהסייבר, ויחידת אתיקה.</td><td>AI, אבטחה ואתיקה כקורסי חובה חדשים, על חשבון נקודות מתחומים אחרים.</td></tr>
+    <tr><td><a href="#gaps">2. איך נדע שהסטודנט עצמו יודע</a></td><td>מבחן או בוחן בלי AI כתנאי מעבר בכל קורס, ובוחן כניסה בכיתה על תרגילי ההכנה. כל סילבוס מצהיר מה תפקיד ה-AI.</td><td>הגנה בעל פה על כל פרויקט, ותיעוד השיחה עם ה-AI שמוגש עם העבודה. בקורסי היסוד מלווה AI שאינו נותן את הפתרון.</td></tr>
+    <tr><td><a href="#gaps">3. ללמוד דרך בנייה</a></td><td>פרויקט בכל קורס, בשלוש רמות: לקוח, בנייה, חישובי קטן.</td><td>קורס עוגן אחד בכל סמסטר שבו הסטודנט מוצא לקוח אמיתי.</td></tr>
+    <tr><td><a href="#gaps">4. עומס ומבנה השבוע</a></td><td>כללי שיבוץ: עד שני קורסים ביום, בלי חלונות ארוכים.</td><td>יסודות לאורך הסמסטר, ונושאים יישומיים בבלוקים של חודש שמסתיימים בהאקתון.</td></tr>
+    <tr><td><a href="#gaps">5. המסלולים ובסיס התכנית</a></td><td>לקבוע כמה קורסי מסלול נדרשים, ולתאם את מערכת הבחירה כך שהם נפתחים.</td><td>תיאום בין המרצים על כפילויות, וסילבוס מעודכן לכל קורס עם תוצרי למידה ותפקיד ה-AI.</td></tr>
+  </table></div></div>
   <div class="chips"><span class="seg" role="group" aria-label="מצב">${[['today', 'היום'], ['A', 'הצעה א'], ['B', 'הצעה ב']].map(([k, l]) => `<button data-state="${k}" aria-pressed="${dirState === k}">${l}</button>`).join('')}</span>
     <span class="small muted">${{ today: 'התכנית כפי שהיא.', A: 'אותם קורסים ואותן נקודות. משתנים ההערכה, תפקיד ה-AI, קורסי העוגן ומערכת השעות.', B: '120 נ"ז כמו היום. AI, אבטחה ואתיקה בחובה; פחות תכנות "קלאסי" ופחות בחירה.' }[dirState]}</span></div>
   ${mapHTML(dirState === 'B' ? 'B' : dirState === 'A' ? 'A' : 'today')}
