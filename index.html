@@ -79,6 +79,7 @@ section.view { display: grid; gap: 18px }
 .card .num.w { color: var(--warn) }
 .card h3 { margin: 4px 0 6px }
 .card p { margin: 0; color: var(--muted) }
+.card p.fix { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); color: var(--ink); font-size: .88rem } .card p.fix a { color: var(--accent); font-weight: 700; text-decoration: none }
 .card p.src, p.src { margin-top: 8px; font-size: .8rem } .src a, table.t a { color: var(--accent) }
 .group h3 { margin-bottom: 8px }
 .q { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 6px }
@@ -307,25 +308,26 @@ function openWeek(sem, withProposals) {
 
 /* ---------- gaps ---------- */
 function viewGaps() {
-  const card = (num, w, t, p) => `<div class="card"><div class="num${w ? ' w' : ''}">${num}</div><h3>${t}</h3><p>${p}</p></div>`;
+  const card = (num, w, t, p, src, fix) => `<div class="card"><div class="num${w ? ' w' : ''}">${num}</div><h3>${t}</h3><p>${p}</p>${src ? `<p class="src">${src}</p>` : ''}${fix ? `<p class="fix"><a href="#directions">כיוון אפשרי ›</a> ${fix}</p>` : ''}</div>`;
   return `<section class="view">
-  <p class="lead">מה עולה מ-56 סילבוסים ומערכת השעות של תשפ"ז. העובדות בלבד; הפרטים בכל קורס זמינים במפה.</p>
+  <p class="lead">מה עולה מ-56 סילבוסים ומערכת השעות של תשפ"ז. בכל כרטיס: הממצא, מה אומר עליו המחקר, וכיוון אפשרי לדיון. הפרטים בכל קורס זמינים במפה.</p>
   <div class="group"><h3>תוכן</h3><div class="cards">
-    ${card('0', 1, 'קורסי חובה ב-AI, באבטחה ובאתיקה', 'שלושת התחומים נמצאים רק בבחירה. הקווים המנחים של המל"ג מ-2016 ממליצים לכלול את שלושתם.')}
-    ${card('3', 0, 'כפילויות בין קורסים עוקבים', 'תכנות מונחה עצמים בשלושה קורסים, גזירה ואינטגרציה בשלושה, הוכחה באינדוקציה בשלושה.')}
+    ${card('0', 1, 'קורסי חובה ב-AI, באבטחה ובאתיקה', 'שלושת התחומים נמצאים רק בבחירה. הקווים המנחים של המל"ג מ-2016 ממליצים לכלול את שלושתם.', 'המל"ג: "יש לכלול" אבטחת מערכות תוכנה ולמידה ממוחשבת, ו"ראוי למסד" היבטים אתיים. <a href="https://che.org.il/wp-content/uploads/decisions/52637/%D7%A7%D7%95%D7%95%D7%99%D7%9D-%D7%9E%D7%A0%D7%97%D7%99%D7%9D-%D7%95%D7%94%D7%92%D7%93%D7%A8%D7%95%D7%AA-%D7%9C%D7%AA%D7%9B%D7%A0%D7%99%D7%95%D7%AA-%D7%9C%D7%99%D7%9E%D7%95%D7%93%D7%99%D7%9D-%D7%91%D7%AA%D7%97%D7%95%D7%9E%D7%99%D7%9D-%D7%94%D7%A0%D7%93%D7%A1%D7%AA-%D7%9E%D7%97%D7%A9%D7%91%D7%99%D7%9D-%D7%94%D7%A0%D7%93%D7%A1%D7%AA-%D7%97%D7%A9%D7%9E%D7%9C.pdf" target="_blank" rel="noopener">קווים מנחים, 2016</a>', 'הצעה א: קורס בחירה חובה ממסלול ה-AI ומהסייבר, ויחידת אתיקה. הצעה ב: AI, אבטחה ואתיקה כקורסי חובה.')}
+    ${card('3', 0, 'כפילויות בין קורסים עוקבים', 'תכנות מונחה עצמים בשלושה קורסים, גזירה ואינטגרציה בשלושה, הוכחה באינדוקציה בשלושה.', '', 'תיאום בין המרצים: מי מלמד מה ובאיזו רמה, כך שכל קורס בונה על הקודם.')}
   </div></div>
   <div class="group"><h3>הערכה, בעידן שבו לכל סטודנט יש סוכן קוד</h3><div class="cards">
-    ${card('25/27', 0, 'קורסי חובה שבהם 70% ומעלה מהציון במבחן או בבוחן', 'המבחן בודק את הסטודנט עצמו. פרויקט הוא חלק מהציון רק ב-3 קורסי חובה, והצגה בעל פה רק בשנה ג.')}
-    ${card('19', 1, 'קורסים שבהם עבודה לא מפוקחת נספרת בציון בלי בדיקה', 'ב-21 קורסי חובה לתרגילי הבית יש משקל בציון. ב-19 מהם לא כתוב שהעבודה נבדקת בעל פה.')}
-    ${card('1/56', 1, 'סילבוסים עם כלל מפורש לשימוש ב-AI', 'כלי AI מופיעים בחמישה קורסים, כל אחד כהתנסות נפרדת, בלי רצף.')}
+    ${card('25/27', 0, 'קורסי חובה שבהם 70% ומעלה מהציון במבחן או בבוחן', 'המבחן בודק את הסטודנט עצמו. פרויקט הוא חלק מהציון רק ב-3 קורסי חובה, והצגה בעל פה רק בשנה ג.', 'קרפתי: <q dir="ltr">If I can\'t build it, I don\'t understand it.</q> <a href="https://www.dwarkesh.com/p/andrej-karpathy" target="_blank" rel="noopener">ראיון, 10.2025</a>', 'לשמור את המבחן בלי AI כתנאי מעבר, ולהוסיף פרויקט עם הגנה בעל פה בכל קורס.')}
+    ${card('19', 1, 'קורסים שבהם עבודה לא מפוקחת נספרת בציון בלי בדיקה', 'ב-21 קורסי חובה לתרגילי הבית יש משקל בציון. ב-19 מהם לא כתוב שהעבודה נבדקת בעל פה.', 'ניסוי מבוקר בכ-1,000 תלמידים: תרגול עם ChatGPT בלי מגבלות שיפר את ציוני התרגול ב-48%, אבל הוריד את ציון המבחן ב-17%. <a href="https://ideas.repec.org/a/nas/journl/v122y2025pe2422633122.html" target="_blank" rel="noopener">Bastani ועמיתיו, PNAS 2025</a>', 'בוחן כניסה בכיתה על תרגילי ההכנה, כמו במערכות ספרתיות: מי שהעתיק נכשל בבוחן.')}
+    ${card('1/56', 1, 'סילבוסים עם כלל מפורש לשימוש ב-AI', 'כלי AI מופיעים בחמישה קורסים, כל אחד כהתנסות נפרדת, בלי רצף.', 'באותו ניסוי, מלווה AI שמכוון ואינו נותן את הפתרון ביטל את רוב הנזק ללמידה. <a href="https://ideas.repec.org/a/nas/journl/v122y2025pe2422633122.html" target="_blank" rel="noopener">Bastani ועמיתיו, PNAS 2025</a>', 'כל סילבוס מצהיר מה תפקיד ה-AI; בקורסי היסוד מלווה שאינו נותן את הפתרון.')}
   </div></div>
   <div class="group"><h3>מערכת השעות והמסלולים</h3><div class="cards">
-    ${card('5/6', 1, 'סמסטרים עם יום של שלושה קורסים', 'סטודנט לומד 3–6 קורסי חובה במקביל, ובשנה א עד 6.5 שעות "חלון" בשבוע. הלימודים בימים א–ג, וימים ד–ה פנויים לסטודנטים שעובדים.')}
-    ${card('0', 1, 'קורסי מסלול AI ודאטה בשנה ג סמסטר א', 'בסמסטר הזה התכנית מציבה קורס בחירה אחד, ואף קורס של מסלולי הבינה המלאכותית ומדעי הנתונים אינו נפתח בו.')}
-    ${card('5', 0, 'קורסי ניהול מוצר שטרם פותחו', 'לפי ראש המחלקה הוגדרו רק שמות הקורסים.')}
+    ${card('5/6', 1, 'סמסטרים עם יום של שלושה קורסים', 'סטודנט לומד 3–6 קורסי חובה במקביל, ובשנה א עד 6.5 שעות "חלון" בשבוע. הלימודים בימים א–ג, וימים ד–ה פנויים לסטודנטים שעובדים.', 'כל מעבר בין נושאים משאיר "שארית קשב" שפוגעת במשימה הבאה. <a href="https://www.uwb.edu/business/faculty/sophie-leroy/attention-residue" target="_blank" rel="noopener">Leroy</a> · עבודה על שני נושאים במקביל מבזבזת כ-20% מהזמן, ועל שלושה כ-40%. <a href="https://www.scrum.org/node/47056" target="_blank" rel="noopener">Weinberg</a>', 'עד שני קורסים ביום; יסודות לאורך הסמסטר ונושאים יישומיים בבלוקים.')}
+    ${card('0', 1, 'קורסי מסלול AI ודאטה בשנה ג סמסטר א', 'בסמסטר הזה התכנית מציבה קורס בחירה אחד, ואף קורס של מסלולי הבינה המלאכותית ומדעי הנתונים אינו נפתח בו.', 'מסלולי ההתמחות ורשימות הקורסים שלהם: <a href="https://www.sapir.ac.il/ba/computer_science" target="_blank" rel="noopener">דף המחלקה באתר המכללה</a>', 'לקבוע כמה קורסי מסלול נדרשים, ולתאם את מערכת הבחירה כך שהם נפתחים.')}
+    ${card('5', 0, 'קורסי ניהול מוצר שטרם פותחו', 'לפי ראש המחלקה הוגדרו רק שמות הקורסים.', '', 'לבנות את הסילבוסים עם המרצים הראשונים, לפי אותם עקרונות.')}
   </div></div>
   </section>`;
 }
+
 /* ---------- the world ---------- */
 function viewAI() {
   return `<section class="view">
@@ -365,6 +367,10 @@ function viewDirections() {
   return `<section class="view">
   <p class="lead"><b>אפשרויות לדיון, לא החלטה.</b> אחת האפשרויות שבדקתי, כדי שיהיה על מה לחשוב יחד. ארבעה עקרונות משותפים, ושתי דרכים ליישם אותם: שינוי בתוך המסגרת הקיימת, או מבנה חדש.</p>
   <div class="cards">
+  <div class="card"><h3>על מה הכיוונים נשענים: מחקר</h3><p>כל אחד מהרכיבים בכיוונים האלה נבדק במחקר, והתוצאות ברורות:</p><ul class="clean small" style="margin-top:6px"><li><b>למידה פעילה במקום הרצאה:</b> מטא-אנליזה של 225 מחקרים בקורסי מדעים, הנדסה ומתמטיקה – שיעור הכישלון ירד מ-34% ל-22%, והציונים עלו בכחצי סטיית תקן. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4060654/" target="_blank" rel="noopener">Freeman ועמיתיו, PNAS 2014</a></li><li><b>למידה מבוססת פרויקטים ובעיות:</b> זכירה טובה יותר לטווח ארוך ופיתוח מיומנויות, על פני שמונה מטא-אנליזות (רובן ברפואה). <a href="https://docs.lib.purdue.edu/ijpbl/vol3/iss1/4/" target="_blank" rel="noopener">Strobel ו-van Barneveld 2009</a></li><li><b>ריווח ושזירה:</b> חומר שחוזרים אליו במרווחים ובתרגול מעורב נזכר הרבה יותר זמן. <a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener">Cepeda ועמיתיו 2006</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/31556629/" target="_blank" rel="noopener">Brunmair ו-Richter 2019</a></li><li><b>בלוקים:</b> אחרי המעבר לבלוקים עלה שיעור המעבר בשנה א מ-74% ל-87% תוך שנתיים, בעיקר אצל סטודנטים מרקע חלש. <a href="https://www.vu.edu.au/mitchell-institute/tertiary-education/inside-the-black-box-of-the-vu-block-model" target="_blank" rel="noopener">Victoria University</a></li></ul><p style="margin-top:8px">מה שעוד לא נבדק הוא השילוב של כל הרכיבים בתכנית אחת. לכן מוצע פיילוט בשנתון אחד, שימדוד את זה אצלנו.</p></div>
+  <div class="card"><h3>ומה אומרים מובילי התחום</h3><ul class="clean small" style="margin-top:6px"><li><b>אנדריי קרפתי:</b> <q dir="ltr">If I can't build it, I don't understand it.</q> ה-AI מייצר, והאדם מאמת. <a href="https://www.dwarkesh.com/p/andrej-karpathy" target="_blank" rel="noopener">ראיון, 10.2025</a> · <a href="https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again" target="_blank" rel="noopener">הרצאה ב-YC, 6.2025</a></li><li><b>אנדרו אנג:</b> <q dir="ltr">Fundamentals are still important.</q> <a href="https://www.deeplearning.ai/the-batch/issue-317" target="_blank" rel="noopener">The Batch, 9.2025</a></li><li><b>ג'פרי הינטון:</b> מתכנת בינוני בלבד לא יהיה מקצוע עוד הרבה זמן. <a href="https://www.businessinsider.com/godfather-ai-geoffrey-hinton-cs-degrees-valuable-learn-to-code-2025-12" target="_blank" rel="noopener">Business Insider, 12.2025</a></li><li><b>ג'נסן הואנג:</b> הנדסה מלמדת לחשוב מעקרונות יסוד, מתמטיקה ופיזיקה. <a href="https://fortune.com/2026/04/29/nvidia-ceo-jensen-huang-engineering-path-to-success-ai-era-gen-z-advice-ieee-medal-of-honor-winner/" target="_blank" rel="noopener">Fortune, 4.2026</a></li></ul><p style="margin-top:8px">מכאן ארבעת העקרונות: יסודות שלא מוותרים עליהם, בנייה ואימות בעצמך, ו-AI ככלי שהסטודנט שולט בו.</p></div>
+  </div>
+  <div class="cards">
     ${pr('ליבה מוגנת', 'המתמטיקה (33 נ"ז) והאלגוריתמים והתיאוריה (17) לא משתנים. בוגר צריך לעמוד באותן דרישות לתואר שני כמו כל בוגר מדעי המחשב.')}
     ${pr('כל פרויקט עונה על צורך של מישהו', 'קורס עוגן אחד בכל סמסטר, שבו הסטודנט מוצא בעצמו אדם או ארגון עם צורך, ומראה מה קרה כשהשתמשו בפתרון.')}
     ${pr('AI מלווה כל סטודנט בכל קורס', 'בקורסי היסוד מדריך שאינו נותן את הפתרון, במתקדמים כלי עבודה. המרצה מקבל סיכום שבועי ברמת הכיתה.')}
@@ -384,7 +390,6 @@ function viewDirections() {
     <tr><td>כללי שיבוץ: עד שני קורסים ביום</td><td>ימים עם שלושה קורסים</td></tr></table></div>` : ''}
   <div class="card"><h3>השבוע של הסטודנט לפני ואחרי</h3><p>הדוגמה שממחישה הכי טוב: שנה ב סמסטר ב. ביום א אלגוריתמים ונומריות לאורך כל הסמסטר, ובימים ב–ג שלושה בלוקים שמסתיימים בהאקתון.</p><p style="margin-top:8px"><button class="weekBtn" data-weekp="y2b">שנה ב סמסטר ב: היום, הצעה א והצעה ב ›</button> <button class="weekBtn" data-weekp="y1a">שנה א סמסטר א ›</button> <button class="weekBtn" data-weekp="y3b">שנה ג סמסטר ב ›</button></p></div>
   <div class="card"><h3>מה מפסידים בהצעה ב</h3><p>פחות בחירה (15 נ"ז מול 18), פרויקט גמר קטן יותר (6 מול 8), ארבעה קורסים מצטמצמים בנקודה. נדרשים מרצים לשני קורסי AI, שעות להגנות ורישיונות לסוכן קוד.</p></div>
-  <div class="card"><h3>על מה השינויים נשענים</h3><p>כל אחד מהרכיבים בכיוונים האלה נבדק במחקר, והתוצאות ברורות:</p><ul class="clean small" style="margin-top:6px"><li><b>למידה פעילה במקום הרצאה:</b> מטא-אנליזה של 225 מחקרים בקורסי מדעים, הנדסה ומתמטיקה – שיעור הכישלון ירד מ-34% ל-22%, והציונים עלו בכחצי סטיית תקן. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4060654/" target="_blank" rel="noopener">Freeman ועמיתיו, PNAS 2014</a></li><li><b>למידה מבוססת פרויקטים ובעיות:</b> זכירה טובה יותר לטווח ארוך ופיתוח מיומנויות, על פני שמונה מטא-אנליזות (רובן ברפואה). <a href="https://docs.lib.purdue.edu/ijpbl/vol3/iss1/4/" target="_blank" rel="noopener">Strobel ו-van Barneveld 2009</a></li><li><b>ריווח ושזירה:</b> חומר שחוזרים אליו במרווחים ובתרגול מעורב נזכר הרבה יותר זמן. <a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener">Cepeda ועמיתיו 2006</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/31556629/" target="_blank" rel="noopener">Brunmair ו-Richter 2019</a></li><li><b>בלוקים:</b> אחרי המעבר לבלוקים עלה שיעור המעבר בשנה א מ-74% ל-87% תוך שנתיים, בעיקר אצל סטודנטים מרקע חלש. <a href="https://www.vu.edu.au/mitchell-institute/tertiary-education/inside-the-black-box-of-the-vu-block-model" target="_blank" rel="noopener">Victoria University</a></li></ul><p style="margin-top:8px">מה שעוד לא נבדק הוא השילוב של כל הרכיבים בתכנית אחת. לכן מוצע פיילוט בשנתון אחד, שימדוד את זה אצלנו.</p></div>
   </section>`;
 }
 
