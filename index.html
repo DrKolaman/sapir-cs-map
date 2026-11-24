@@ -82,6 +82,8 @@ section.view { display: grid; gap: 18px }
 .card p.fix { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); color: var(--ink); font-size: .88rem } .card p.fix a { color: var(--accent); font-weight: 700; text-decoration: none }
 .card p.src, p.src { margin-top: 8px; font-size: .8rem } .src a, table.t a { color: var(--accent) }
 .group h3 { margin-bottom: 8px }
+h2.part { margin-top: 28px; padding-top: 14px; border-top: 2px solid var(--line); scroll-margin-top: 70px } h2.part:first-of-type { border-top: 0; margin-top: 4px }
+nav.jump { display: flex; flex-wrap: wrap; gap: 8px } nav.jump a { cursor: pointer; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--accent); font-weight: 700; font-size: .9rem }
 .q { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 6px }
 .q h3 { font-size: 1.25rem } .q p { margin: 0; max-width: 75ch }
 .q .why { color: var(--muted) }
@@ -144,9 +146,7 @@ ul.clean { margin: 0; padding-inline-start: 18px } ul.clean li { margin: 2px 0 }
   </div>
   <nav class="tabs" aria-label="חלקי העמוד">
     <a href="#path">המסלול</a>
-    <a href="#gaps">הפערים</a>
-    <a href="#ai">מה השתנה בעולם</a>
-    <a href="#questions">שאלות לוועדה</a>
+    <a href="#gaps">מה השתנה ב-2026 – פערים</a>
     <a href="#directions" id="dirTab">כיוונים לדיון</a>
   </nav>
 </header>
@@ -171,10 +171,11 @@ window.addEventListener('hashchange', route);
 function route() {
   if (!D) return;
   let v = (location.hash || '#path').slice(1);
-  if (!['path', 'gaps', 'ai', 'questions', 'directions'].includes(v)) v = 'path';
+  if (v === 'ai' || v === 'questions') v = 'gaps';
+  if (!['path', 'gaps', 'directions'].includes(v)) v = 'path';
   
   document.querySelectorAll('nav.tabs a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === '#' + v ? 'page' : 'false'));
-  $('#app').innerHTML = { path: viewPath, gaps: viewGaps, ai: viewAI, questions: viewQuestions, directions: viewDirections }[v]();
+  $('#app').innerHTML = { path: viewPath, gaps: viewStatus, directions: viewDirections }[v]();
   bind();
   window.scrollTo(0, 0);
 }
@@ -328,6 +329,17 @@ function viewGaps() {
   </section>`;
 }
 
+/* ---------- status: what changed, our gaps, questions ---------- */
+function viewStatus() {
+  const inner = s => s.replace(/^\s*<section class="view">/, '').replace(/<\/section>\s*$/, '');
+  const sec = (id, t, body) => `<h2 id="${id}" class="part">${t}</h2>${inner(body)}`;
+  return `<section class="view">
+  <nav class="jump"><a data-jump="s-world">מה השתנה ב-2026</a><a data-jump="s-gaps">הפערים אצלנו</a><a data-jump="s-q">שאלות לוועדה</a></nav>
+  ${sec('s-world', 'מה השתנה ב-2026', viewAI())}
+  ${sec('s-gaps', 'הפערים אצלנו', viewGaps())}
+  ${sec('s-q', 'שאלות לוועדה', viewQuestions())}
+  </section>`;
+}
 /* ---------- the world ---------- */
 function viewAI() {
   return `<section class="view">
@@ -344,6 +356,7 @@ function viewAI() {
     <tr><td><b><a href="https://www.themarker.com/news/education/2026-06-24/ty-article/0000019e-f9ba-d514-a9bf-f9fbace90000" target="_blank" rel="noopener">המל"ג, 2026</a></b></td><td>אישרה מסלולי תואר ראשון ב-AI בשבעה מוסדות, כחלופה למדעי המחשב. מספר הסטודנטים למדעי המחשב ירד ב-14% מהשיא של 2023.</td></tr>
     <tr><td><b><a href="https://www.en.aau.dk/education/problem-based-learning" target="_blank" rel="noopener">אלבורג, דנמרק</a></b></td><td>מאז 1974: בכל סמסטר כחצי מהזמן הולך לפרויקט צוותי, וחצי לקורסים שתומכים בו. גם במדעי המחשב.</td></tr>
   </table></div>
+  <div class="card"><h3>AI מחוץ לכיתה: הציונים עולים, הלמידה לא</h3><p>סטודנטים שעובדים עם AI כללי מגישים עבודות טובות יותר, אבל במבחן בלי הכלי היתרון נעלם ולפעמים מתהפך. בקורסים שבהם AI יכול לעשות את העבודה, כתיבה ותכנות, שיעור ציוני ה-A עלה ב-30% מאז ChatGPT, ויותר ככל שלתרגילי הבית משקל גבוה בציון. AI שנבנה למטרה פדגוגית, שמכוון ואינו פותר, דווקא משפר את הלמידה.</p><p class="src">מקור: <a href="https://www.oecd.org/en/publications/oecd-digital-education-outlook-2026_062a7394-en.html" target="_blank" rel="noopener">OECD Digital Education Outlook 2026</a> · <a href="https://cshe.berkeley.edu/publications/artificial-intelligence-and-grade-inflation-cshe-higher-education-working-paper-series" target="_blank" rel="noopener">Chirikov, Berkeley CSHE, 5.2026</a> · <a href="https://ideas.repec.org/a/nas/journl/v122y2025pe2422633122.html" target="_blank" rel="noopener">Bastani ועמיתיו, PNAS 2025</a></p></div>
   <div class="card"><h3>ממחקרי הלמידה</h3><p>בתוך יום, כל מעבר בין נושאים עולה בריכוז. לאורך שבועות, חזרה במרווחים ותרגול מעורב משפרים את הזכירה. מכאן: מעט נושאים ביום, וחזרה לנושאים לאורך הסמסטר.</p><p class="src">מקור: <a href="https://www.uwb.edu/business/faculty/sophie-leroy/attention-residue" target="_blank" rel="noopener">Leroy, "שארית קשב"</a> · <a href="https://www.scrum.org/node/47056" target="_blank" rel="noopener">Weinberg, מעבר בין פרויקטים</a> · <a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener">Cepeda ועמיתיו 2006, ריווח</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/31556629/" target="_blank" rel="noopener">Brunmair ו-Richter 2019, שזירה</a> · <a href="https://www.vu.edu.au/mitchell-institute/tertiary-education/inside-the-black-box-of-the-vu-block-model" target="_blank" rel="noopener">Victoria University, בלוקים</a></p></div>
   </section>`;
 }
@@ -395,6 +408,7 @@ function viewDirections() {
 
 function bind() {
   document.querySelectorAll('[data-track]').forEach(b => b.addEventListener('click', () => { track = b.dataset.track; try { localStorage.setItem('track', track) } catch (e) {} route(); }));
+  document.querySelectorAll('[data-jump]').forEach(a => a.addEventListener('click', () => document.getElementById(a.dataset.jump).scrollIntoView({ behavior: 'smooth', block: 'start' })));
   document.querySelectorAll('[data-state]').forEach(b => b.addEventListener('click', () => { dirState = b.dataset.state; route(); }));
   document.querySelectorAll('#app [data-course]').forEach(b => b.addEventListener('click', () => openCourse(b.dataset.course)));
   document.querySelectorAll('[data-week]').forEach(b => b.addEventListener('click', () => openWeek(b.dataset.week, (location.hash || '') === '#directions')));
