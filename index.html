@@ -69,6 +69,15 @@ section.view { display: grid; gap: 18px }
 .tile.cut { opacity: .5; text-decoration: line-through }
 .emptyTrack { font-size: .8rem; color: var(--warn); background: var(--warn-soft); border-radius: 8px; padding: 6px 8px }
 .weekBtn { margin-top: auto; font: inherit; font-size: .8rem; border: 1px solid var(--line); background: transparent; color: var(--accent); border-radius: 8px; padding: 4px 8px; cursor: pointer }
+.tl { display: grid; grid-template-columns: 78px repeat(13, 1fr); gap: 3px; margin-top: 10px; font-size: .78rem }
+.tlwk { text-align: center; color: var(--muted, #667); font-variant-numeric: tabular-nums }
+.tllab { color: var(--muted, #667); align-self: center; font-size: .72rem }
+.tlgrp { grid-column: 1 / -1; font-weight: 600; margin-top: 6px }
+.tlbar { background: color-mix(in srgb, var(--cc) 22%, transparent); border-inline-start: 4px solid var(--cc); border-radius: 4px; padding: 3px 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; position: relative }
+.tlbar .hk { float: left; font-size: .68rem; opacity: .8 }
+.tag.blk { background: color-mix(in srgb, var(--c-ai) 18%, transparent) }
+.blknote { font-size: .75rem; color: var(--muted, #667); margin: -2px 0 6px }
+table.cmp td:first-child { font-weight: 600; white-space: nowrap }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .85rem }
 .legend span { display: inline-flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums }
 .legend i { width: 12px; height: 12px; border-radius: 3px; background: var(--cc); display: inline-block }
@@ -207,16 +216,46 @@ function trackNote() {
   const clash = D.electives.filter(e => T.list.includes(e.id) && e.clashes.length);
   return `מסלול ${esc(T.name)}: קורסי המסלול שנפתחים בתשפ"ז – ${got[0]} בשנה ב סמסטר ב, ${got[1]} בשנה ג סמסטר א, ${got[2]} בשנה ג סמסטר ב. דרישות המסלול, לפי המחלקה: ${esc(T.req || '')}`;
 }
+/* blocks in proposal B: course id -> weeks, per semester */
+function blockMap() {
+  const m = {};
+  for (const w of D.weeks || []) { if (!w.B) continue; const y = w.title.startsWith('שנה א') ? 1 : w.title.startsWith('שנה ב') ? 2 : w.title.startsWith('שנה ג') ? 3 : 0; if (!y) continue;
+    const key = 'y' + y + (w.sem === 'א' ? 'a' : 'b'); if (m[key]) continue;
+    const b = w.B.ses.find(s => s.kind === 'blk'); if (b) { m[key] = {}; for (const x of b.blocks) m[key][x.id] = x; } }
+  return m;
+}
+function blocksTimeline() {
+  const w = (D.weeks || []).find(x => x.title.startsWith('שנה ב') && x.sem === 'ב' && x.B); if (!w) return '';
+  const b = w.B.ses.find(s => s.kind === 'blk'); if (!b) return '';
+  const nm = id => (D.B.flatMap(s => s.courses).find(c => c.id === id) || {}).name || id;
+  const cat = id => (D.B.flatMap(s => s.courses).find(c => c.id === id) || {}).cat;
+  const spine = [...new Set(w.B.ses.filter(s => s.kind !== 'blk').map(s => s.cid))];
+  const today = [...new Set(w.cur.map(s => s.cid))];
+  const catT = id => ((D.today.flatMap(s => s.courses).find(c => c.id === id) || {}).cat) || 'el';
+  const nmT = id => ((D.today.flatMap(s => s.courses).find(c => c.id === id) || {}).name) || 'קורס בחירה';
+  const bar = (label, from, to, c, hack) => `<div class="tlbar" style="grid-column:${from + 1} / ${to + 2};--cc:${cc(c)}">${esc(label)}${hack ? '<span class="hk">האקתון</span>' : ''}</div>`;
+  const wk = Array.from({ length: 13 }, (_, i) => `<div class="tlwk">${i + 1}</div>`).join('');
+  let h = `<div class="tl"><div class="tllab"></div>${wk}`;
+  h += `<div class="tlgrp">היום והצעה א: הכול במקביל</div>`;
+  for (const id of today) h += `<div class="tllab"></div>` + bar(nmT(id), 1, 13, catT(id));
+  h += `<div class="tlgrp">הצעה ב: יסודות לאורך הסמסטר, ונושא יישומי אחד בכל פעם</div>`;
+  for (const id of spine) h += `<div class="tllab">יום יסודות</div>` + bar(nm(id), 1, 13, cat(id));
+  h += `<div class="tllab">יומיים בלוקים</div>` + b.blocks.map(x => bar(nm(x.id), x.from, x.to, cat(x.id), true)).join('');
+  return h + '</div>';
+}
 function mapHTML(state) {
   const src = state === 'B' ? D.B : D.today;
+  const BM = state === 'B' ? blockMap() : {};
   return `<div class="map">` + src.map(s => {
-    const list = s.courses;
+    const bm = BM[s.key];
+    const list = bm ? [...s.courses].sort((a, b) => (bm[a.id] ? bm[a.id].from : 0) - (bm[b.id] ? bm[b.id].from : 0)) : s.courses;
     const nz = list.reduce((a, c) => a + (+c.nz || 0), 0) + (state === 'B' ? { y3a: 6, y3b: 9 }[s.key] || 0 : (s.electives || 0) * 3);
     let tiles = list.map(c => {
       const det = D.details[c.id];
       let tags = '';
       if (state === 'today') { if (!det) tags = '<span class="tag w">אין סילבוס</span>'; }
       if (state === 'B') { if (c.st === 'new') tags = '<span class="tag n">חדש</span>'; else if (c.st === 'cut' || (c.was && c.was > c.nz)) tags = `<span class="tag">${c.was}←${c.nz}</span>`; }
+      if (bm) tags += bm[c.id] ? `<span class="tag blk">בלוק · שבועות ${bm[c.id].from} עד ${bm[c.id].to}</span>` : '<span class="tag">לאורך כל הסמסטר</span>';
       if (state !== 'B' && ['proj1', 'proj2'].includes(c.id)) tags += '<span class="tag">או: בית תוכנה / מעבדת גיימינג</span>';
       if (state === 'A' && ['oop', 'digital', 'sysprog', 'webproj', 'web', 'proj1', 'proj2'].includes(c.id)) tags += '<span class="tag n">פרויקט לקוח</span>';
       return `<button class="tile" data-course="${c.id}" style="--cc:${cc(c.cat)}">${esc(c.name)} <span class="nz">${c.nz || 0} נ"ז</span>${tags}</button>`;
@@ -226,11 +265,11 @@ function mapHTML(state) {
     const nEl = state === 'B' ? ({ y3a: 2, y3b: 3 }[s.key] || 0) : (s.electives || 0);
     if (nEl) { if (track === 'pm') tiles += `<button class="tile slot" data-pmslot>בתכנית ניהול מוצר: קורסי התמחות ›</button>`; else tiles += electivesFor(s.key, nEl).tiles; }
     if (state === 'B' && track !== 'general' && track !== 'pm' && !nEl) {}
-    return `<div class="sem"><div class="semhead"><b>${SEMN[s.key]}</b><span>${nz} נ"ז</span></div>${tiles}<button class="weekBtn" data-week="${s.key}">השבוע של הסטודנט ›</button></div>`;
+    return `<div class="sem"><div class="semhead"><b>${SEMN[s.key]}</b><span>${nz} נ"ז</span></div>${bm ? '<div class="blknote">יום אחד יסודות לאורך הסמסטר; ביומיים האחרים בלוק אחרי בלוק, ובסוף כל בלוק האקתון</div>' : ''}${tiles}<button class="weekBtn" data-week="${s.key}">השבוע של הסטודנט ›</button></div>`;
   }).join('') + `</div>`;
 }
 function legendHTML(state) {
-  const tot = state === 'B' ? { math: 33, theory: 17, sys: 15, prog: 17, data: 4, ai: 6, se: 5, eth: 1, proj: 7, el: 15 } : D.totals.today;
+  const tot = state === 'B' ? { math: 30, theory: 18, sys: 15, prog: 17, data: 4, ai: 6, se: 5, eth: 1, proj: 7, el: 15 } : D.totals.today;
   return `<div class="legend">` + Object.entries(D.cats).map(([k, v]) => `<span style="--cc:${cc(k)}"><i></i>${esc(v)} <b class="${tot[k] === 0 ? 'zero' : ''}">${tot[k] ?? 0}</b></span>`).join('') + `</div>`;
 }
 function viewPath() {
@@ -429,12 +468,23 @@ function viewDirections() {
   const pr = (t, p) => `<div class="card"><h3>${t}</h3><p>${p}</p></div>`;
   return `<section class="view">
   <p class="lead"><b>אפשרויות לדיון, לא החלטה.</b> אחת האפשרויות שבדקתי, כדי שיהיה על מה לחשוב יחד. ארבעה עקרונות משותפים, ושתי דרכים ליישם אותם: שינוי בתוך המסגרת הקיימת, או מבנה חדש.</p>
+  <div class="card"><h3>ההבדל בין הצעה א להצעה ב במבט אחד</h3><p><b>הצעה א:</b> אותם קורסים ואותה מערכת שעות; משנים איך מלמדים ואיך בודקים. <b>הצעה ב:</b> משנים גם את מבנה התכנית: AI, אבטחה ואתיקה בחובה, והשבוע בנוי מיסודות ובלוקים.</p>
+  <div class="tw"><table class="t cmp"><tr><th></th><th>היום</th><th>הצעה א · אותם קורסים, הוראה והערכה אחרות</th><th>הצעה ב · מבנה חדש</th></tr>
+    <tr><td>קורסים ונקודות</td><td>120 נ"ז. אבטחה ואתיקה רק בבחירה</td><td>ללא שינוי</td><td>עדיין 120 נ"ז. למידת מכונה, מודלי שפה, אבטחה ואתיקה בחובה. פחות בחירה (15 מול 18), פרויקט גמר 6 במקום 8, תכנות 17 במקום 20</td></tr>
+    <tr><td>הערכה</td><td>לפי כל סילבוס. ב-6 קורסי חובה 20%–30% עבודה לא מפוקחת בלי בחינה בעל פה</td><td>מבחן או בוחן בלי AI כתנאי מעבר, בוחן כניסה על תרגילי ההכנה, הגנה בעל פה על פרויקטים</td><td>כמו בהצעה א</td></tr>
+    <tr><td>תפקיד ה-AI</td><td>כלל מפורש בסילבוס אחד מ-58</td><td>כל סילבוס מגדיר; פיילוט של מלווה AI בשניים-שלושה קורסים</td><td>מלווה AI בכל קורס יסוד, וכלי עבודה בקורסים המתקדמים</td></tr>
+    <tr><td>פרויקטים</td><td>פרויקט גמר; מעט פרויקטים עם לקוח אמיתי</td><td>קורס עוגן עם לקוח אמיתי בכל סמסטר</td><td>כמו בהצעה א, ועוד האקתון בסוף כל בלוק</td></tr>
+    <tr><td>מבנה השבוע</td><td>כל הקורסים במקביל, לפעמים שלושה ביום</td><td>אותו מבנה, עד שני קורסים ביום</td><td>יסודות לאורך הסמסטר; נושאים יישומיים בבלוקים של כחודש, אחד אחרי השני</td></tr>
+    <tr><td>מה צריך כדי להתחיל</td><td>–</td><td>החלטה מחלקתית ועדכון הסילבוסים</td><td>אישורים, מרצים לקורסי AI, שעות להגנות, רישיונות, ומרצים שפנויים לבלוקים</td></tr>
+    <tr><td>הסיכון העיקרי</td><td>–</td><td>לא פותר את המבנה, ואבטחה ואתיקה לא נכנסות לחובה</td><td>זמינות המרצים: מרצים מהתעשייה ומרצים שמלמדים גם במוסדות אחרים לא יכולים בדרך כלל להתפנות ליומיים בשבוע במשך חודש. לכן פיילוט בשנתון אחד</td></tr>
+  </table></div></div>
+  <div class="card"><h3>מה זה בלוק? שנה ב סמסטר ב, 13 שבועות</h3><p>בלוק הוא קורס שלומדים ברצף, יומיים בשבוע במשך כחודש, במקום פעם-פעמיים בשבוע לאורך כל הסמסטר. אותן שעות ואותו חומר, רק מרוכז. בסוף כל בלוק האקתון: יום-יומיים של בניית מוצר עובד מהחומר של הבלוק.</p>${blocksTimeline()}</div>
   <div class="cards">
   <div class="card"><h3>על מה הכיוונים נשענים: מחקר</h3><p>כל אחד מהרכיבים בכיוונים האלה נבדק במחקר, והתוצאות ברורות:</p><ul class="clean small" style="margin-top:6px"><li><b>למידה פעילה במקום הרצאה:</b> מטא-אנליזה של 225 מחקרים בקורסי מדעים, הנדסה ומתמטיקה – שיעור הכישלון ירד מ-34% ל-22%, והציונים עלו בכחצי סטיית תקן. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4060654/" target="_blank" rel="noopener">Freeman ועמיתיו, PNAS 2014</a></li><li><b>למידה מבוססת פרויקטים ובעיות:</b> זכירה טובה יותר לטווח ארוך ופיתוח מיומנויות, על פני שמונה מטא-אנליזות (רובן ברפואה). <a href="https://docs.lib.purdue.edu/ijpbl/vol3/iss1/4/" target="_blank" rel="noopener">Strobel ו-van Barneveld 2009</a></li><li><b>ריווח ושזירה:</b> חומר שחוזרים אליו במרווחים ובתרגול מעורב נזכר הרבה יותר זמן. <a href="https://doi.org/10.1037/0033-2909.132.3.354" target="_blank" rel="noopener">Cepeda ועמיתיו 2006</a> · <a href="https://pubmed.ncbi.nlm.nih.gov/31556629/" target="_blank" rel="noopener">Brunmair ו-Richter 2019</a></li><li><b>בלוקים:</b> אחרי המעבר לבלוקים עלה שיעור המעבר בשנה א מ-74% ל-87% תוך שנתיים, בעיקר אצל סטודנטים מרקע חלש. <a href="https://www.vu.edu.au/mitchell-institute/tertiary-education/inside-the-black-box-of-the-vu-block-model" target="_blank" rel="noopener">Victoria University</a></li></ul><p style="margin-top:8px">מה שעוד לא נבדק הוא השילוב של כל הרכיבים בתכנית אחת. לכן מוצע פיילוט בשנתון אחד, שימדוד את זה אצלנו.</p></div>
   <div class="card"><h3>ומה אומרים מובילי התחום</h3><ul class="clean small" style="margin-top:6px"><li><b>אנדריי קרפתי:</b> <q dir="ltr">If I can't build it, I don't understand it.</q> ה-AI מייצר, והאדם מאמת. <a href="https://www.dwarkesh.com/p/andrej-karpathy" target="_blank" rel="noopener">ראיון, 10.2025</a> · <a href="https://www.ycombinator.com/library/MW-andrej-karpathy-software-is-changing-again" target="_blank" rel="noopener">הרצאה ב-YC, 6.2025</a></li><li><b>אנדרו אנג:</b> <q dir="ltr">Fundamentals are still important.</q> <a href="https://www.deeplearning.ai/the-batch/issue-317" target="_blank" rel="noopener">The Batch, 9.2025</a></li><li><b>ג'פרי הינטון:</b> מתכנת בינוני בלבד לא יהיה מקצוע עוד הרבה זמן. <a href="https://www.businessinsider.com/godfather-ai-geoffrey-hinton-cs-degrees-valuable-learn-to-code-2025-12" target="_blank" rel="noopener">Business Insider, 12.2025</a></li><li><b>ג'נסן הואנג:</b> הנדסה מלמדת לחשוב מעקרונות יסוד, מתמטיקה ופיזיקה. <a href="https://fortune.com/2026/04/29/nvidia-ceo-jensen-huang-engineering-path-to-success-ai-era-gen-z-advice-ieee-medal-of-honor-winner/" target="_blank" rel="noopener">Fortune, 4.2026</a></li></ul><p style="margin-top:8px">מכאן ארבעת העקרונות: יסודות שלא מוותרים עליהם, בנייה ואימות בעצמך, ו-AI ככלי שהסטודנט שולט בו.</p></div>
   </div>
   <div class="cards">
-    ${pr('ליבה מוגנת', 'המתמטיקה (30 נ"ז) והאלגוריתמים והתיאוריה (17) לא משתנים. בוגר צריך לעמוד באותן דרישות לתואר שני כמו כל בוגר מדעי המחשב.')}
+    ${pr('ליבה מוגנת', 'המתמטיקה (30 נ"ז) והאלגוריתמים והתיאוריה (18) לא משתנים. בוגר צריך לעמוד באותן דרישות לתואר שני כמו כל בוגר מדעי המחשב.')}
     ${pr('כל פרויקט עונה על צורך של מישהו', 'קורס עוגן אחד בכל סמסטר, שבו הסטודנט מוצא בעצמו אדם או ארגון עם צורך, ומראה מה קרה כשהשתמשו בפתרון.')}
     ${pr('AI מלווה כל סטודנט בכל קורס', 'בקורסי היסוד מדריך שאינו נותן את הפתרון, במתקדמים כלי עבודה. המרצה מקבל סיכום שבועי ברמת הכיתה.')}
     ${pr('שלושה רכיבים בכל קורס', 'פרויקט, עבודה שוטפת, ומבחן או בוחן בלי AI כתנאי מעבר. לפחות חצי מהציון בפיקוח או בעל פה.')}
@@ -458,8 +508,8 @@ function viewDirections() {
     <tr><td>בדיקות ואימות כשיטת עבודה; Git ו-CI משנה א</td><td>בקרת גרסאות ופריסה אינן תוצר למידה</td></tr>
     <tr><td>הרחבת "AI בתעשייה" לאתיקה ולאבטחה</td><td>אבטחה ואתיקה אינן בחובה</td></tr>
     <tr><td>כללי שיבוץ: עד שני קורסים ביום</td><td>ימים עם שלושה קורסים</td></tr></table></div>` : ''}
-  <div class="card"><h3>השבוע של הסטודנט לפני ואחרי</h3><p>הדוגמה שממחישה הכי טוב: שנה ב סמסטר ב. ביום א אלגוריתמים ונומריות לאורך כל הסמסטר, ובימים ב–ג שלושה בלוקים שמסתיימים בהאקתון.</p><p style="margin-top:8px"><button class="weekBtn" data-weekp="y2b">שנה ב סמסטר ב: היום, הצעה א והצעה ב ›</button> <button class="weekBtn" data-weekp="y1a">שנה א סמסטר א ›</button> <button class="weekBtn" data-weekp="y3b">שנה ג סמסטר ב ›</button></p></div>
-  <div class="card"><h3>מה מפסידים בהצעה ב</h3><p>פחות בחירה (15 נ"ז מול 18), פרויקט גמר קטן יותר (6 מול 8), ארבעה קורסים מצטמצמים בנקודה. נדרשים מרצים לשני קורסי AI, שעות להגנות ורישיונות לסוכן קוד.</p></div>
+  <div class="card"><h3>השבוע של הסטודנט לפני ואחרי</h3><p>הדוגמה שממחישה הכי טוב: שנה ב סמסטר ב. ביום אחד תכנון אלגוריתמים לאורך כל הסמסטר, וביומיים האחרים שלושה בלוקים שמסתיימים בהאקתון.</p><p style="margin-top:8px"><button class="weekBtn" data-weekp="y2b">שנה ב סמסטר ב: היום, הצעה א והצעה ב ›</button> <button class="weekBtn" data-weekp="y1a">שנה א סמסטר א ›</button> <button class="weekBtn" data-weekp="y3b">שנה ג סמסטר ב ›</button></p></div>
+  <div class="card"><h3>מה מפסידים בהצעה ב</h3><p>פחות בחירה (15 נ"ז מול 18), פרויקט גמר קטן יותר (6 מול 8), ארבעה קורסים מצטמצמים בנקודה. נדרשים מרצים לשני קורסי AI, שעות להגנות ורישיונות לסוכן קוד. והמגבלה העיקרית של הבלוקים: מרצים מהתעשייה ומרצים שמלמדים גם במוסדות אחרים לא יכולים בדרך כלל להתפנות ליומיים בשבוע במשך חודש.</p></div>
   </section>`;
 }
 
